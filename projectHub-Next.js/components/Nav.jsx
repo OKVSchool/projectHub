@@ -23,6 +23,7 @@ export default function Nav() {
           <>
             <Link href="/">Projects</Link>
             <Link href="/ideas">Ideas</Link>
+            <Link href="/dev">Dev</Link>
             <span style={{ color: '#888', fontSize: '0.875rem' }}>{user.name}</span>
             <button
               onClick={logout}

@@ -7,9 +7,7 @@ import { api } from '@/lib/api'
 import IdeaPanel from '@/components/IdeaPanel'
 import ThoughtPanel from '@/components/ThoughtPanel'
 import ProjectPanel from '@/components/ProjectPanel'
-import DevTab from '@/components/DevTab'
-
-const TABS = ['thoughts', 'ideas', 'projects', 'dev']
+const TABS = ['thoughts', 'ideas', 'projects']
 
 export default function ProjectIdeas() {
   const { user, loading } = useAuth()
@@ -70,7 +68,7 @@ export default function ProjectIdeas() {
       {tab === 'projects' && (
         <ProjectsTab projects={projects} thoughts={thoughts} refreshThoughts={refreshThoughts} />
       )}
-      {tab === 'dev' && <DevTab />}
+
     </div>
   )
 }
