@@ -45,8 +45,18 @@ const LIVE_TESTS = [
   // ── AUTH ───────────────────────────────────────────────────────────────────
   { isSection: true, title: 'Auth' },
   {
-    label: 'No Authorization header',
-    description: 'Sends a request with no Authorization header at all. Hits the startsWith("Bearer") check — a different code path from an invalid token.',
+    label: 'Attack 1 — DELETE /tasks/[id] with no Authorization header',
+    description: 'Sends a DELETE with no Authorization header at all. requireAuth checks for the Bearer prefix before jwt.verify() is ever called — the task should not be deleted.',
+    run: async () => {
+      const res = await fetch(`${BASE_URL}/tasks/64a1f2000000000000000000`, {
+        method: 'DELETE'
+      })
+      return { status: res.status, data: await res.json() }
+    }
+  },
+  {
+    label: 'No Authorization header — GET /projects',
+    description: 'Same missing-header check on a different route and method, confirming requireAuth is applied consistently across routes.',
     run: async () => {
       const res = await fetch(`${BASE_URL}/projects`)
       return { status: res.status, data: await res.json() }
