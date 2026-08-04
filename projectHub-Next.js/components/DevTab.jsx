@@ -202,7 +202,7 @@ const LIVE_TESTS = [
   },
   {
     label: "DELETE another user's project",
-    description: "Sends a DELETE for a valid ObjectId that belongs to a different user. The { _id, userId } filter finds no match — the document is untouched and the response is 404, not 403, so existence is not revealed.",
+    description: "Sends a DELETE for a valid ObjectId that belongs to a different user. Returns 404 — not 403 — because the { _id, userId } ownership filter makes it indistinguishable from a missing record. This is intentional: a 403 would confirm the ID exists, leaking information to an attacker.",
     run: async () => {
       const res = await fetch(`${BASE_URL}/projects/507f1f77bcf86cd799439011`, {
         method: 'DELETE',
