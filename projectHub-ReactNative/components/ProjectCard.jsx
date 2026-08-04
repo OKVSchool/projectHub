@@ -1,7 +1,7 @@
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native'
 import { useRouter } from 'expo-router'
 
-const STATUS_COLORS = { active: '#22c55e', completed: '#e07820', paused: '#f59e0b', deployed: '#3b82f6' }
+const STATUS_COLORS = { active: '#3b82f6', completed: '#e07820', paused: '#f59e0b', deployed: '#22c55e' }
 
 export default function ProjectCard({ project }) {
   const router = useRouter()

@@ -3,10 +3,10 @@
 import Link from 'next/link'
 
 const STATUS_COLORS = {
-  active: '#22c55e',
+  active: '#3b82f6',
   completed: '#e07820',
   paused: '#f59e0b',
-  deployed: '#3b82f6'
+  deployed: '#22c55e'
 }
 
 export default function ProjectCard({ project }) {
