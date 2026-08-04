@@ -43,7 +43,7 @@ export default function ThoughtPanel({ thought, onDelete, nested = false }) {
       )}
 
       <button onClick={() => setEditing(true)} style={iconBtn}>✏️</button>
-      <button onClick={deleteThought} style={iconBtn}>🗑</button>
+      <button onClick={deleteThought} style={{ ...iconBtn, color: '#ef4444' }}>🗑</button>
     </div>
   )
 }

@@ -83,7 +83,7 @@ export default function TaskList({ parentId, parentType }) {
               <span style={{ flex: 1, textDecoration: task.done ? 'line-through' : 'none', color: task.done ? '#555' : '#e5e5e5', fontSize: '0.9rem' }}>
                 {task.title}
               </span>
-              <button onClick={() => deleteTask(task._id)} style={{ background: 'none', border: 'none', color: '#555', fontSize: '1rem', cursor: 'pointer' }}>
+              <button onClick={() => deleteTask(task._id)} style={{ background: 'none', border: 'none', color: '#ef4444', fontSize: '1rem', cursor: 'pointer' }}>
                 ×
               </button>
             </li>
