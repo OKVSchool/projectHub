@@ -5,7 +5,8 @@ import Link from 'next/link'
 const STATUS_COLORS = {
   active: '#22c55e',
   completed: '#e07820',
-  paused: '#f59e0b'
+  paused: '#f59e0b',
+  deployed: '#3b82f6'
 }
 
 export default function ProjectCard({ project }) {

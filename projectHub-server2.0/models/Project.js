@@ -4,7 +4,7 @@ const projectSchema = new mongoose.Schema({
   title: { type: String, required: true, trim: true },
   description: { type: String, default: '' },
   date: { type: Date },
-  status: { type: String, enum: ['active', 'completed', 'paused'], default: 'active' },
+  status: { type: String, enum: ['active', 'completed', 'paused', 'deployed'], default: 'active' },
   lanes: [{ type: String }],
   framework: { type: String },
   repoUrl: { type: String },
