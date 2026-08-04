@@ -19,7 +19,7 @@ export default function ProjectPanel({ project, thoughts }) {
         <Link
           href={`/projects/${project._id}`}
           onClick={e => e.stopPropagation()}
-          style={{ fontSize: '0.8rem', color: '#7c6cfa' }}
+          style={{ fontSize: '0.8rem', color: '#e07820' }}
         >
           View ↗
         </Link>

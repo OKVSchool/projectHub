@@ -46,10 +46,10 @@ export default function ProjectIdeas() {
             style={{
               background: 'none',
               border: 'none',
-              color: tab === t ? '#7c6cfa' : '#888',
+              color: tab === t ? '#e07820' : '#888',
               fontWeight: tab === t ? 600 : 400,
               padding: '0.5rem 1rem',
-              borderBottom: tab === t ? '2px solid #7c6cfa' : '2px solid transparent',
+              borderBottom: tab === t ? '2px solid #e07820' : '2px solid transparent',
               fontSize: '0.9rem',
               textTransform: 'capitalize',
               cursor: 'pointer'
@@ -174,7 +174,7 @@ const inputStyle = {
 }
 
 const btnStyle = {
-  background: '#7c6cfa',
+  background: '#e07820',
   color: '#fff',
   border: 'none',
   padding: '0.6rem 1rem',

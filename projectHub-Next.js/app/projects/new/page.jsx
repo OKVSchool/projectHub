@@ -42,7 +42,7 @@ export default function NewProject() {
     <div style={{ maxWidth: 600, margin: '0 auto' }}>
       <button
         onClick={() => router.push('/')}
-        style={{ background: 'none', border: 'none', color: '#7c6cfa', marginBottom: '1.5rem', fontSize: '0.875rem', cursor: 'pointer' }}
+        style={{ background: 'none', border: 'none', color: '#e07820', marginBottom: '1.5rem', fontSize: '0.875rem', cursor: 'pointer' }}
       >
         ← Back
       </button>
@@ -115,7 +115,7 @@ const inputStyle = {
 }
 
 const btnStyle = {
-  background: '#7c6cfa',
+  background: '#e07820',
   color: '#fff',
   border: 'none',
   padding: '0.75rem',

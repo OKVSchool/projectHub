@@ -1,7 +1,7 @@
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native'
 import { useRouter } from 'expo-router'
 
-const STATUS_COLORS = { active: '#22c55e', completed: '#7c6cfa', paused: '#f59e0b' }
+const STATUS_COLORS = { active: '#22c55e', completed: '#e07820', paused: '#f59e0b' }
 
 export default function ProjectCard({ project }) {
   const router = useRouter()
@@ -39,6 +39,6 @@ const styles = StyleSheet.create({
   desc: { color: '#aaa', fontSize: 14, lineHeight: 20, marginBottom: 8 },
   framework: { fontSize: 12, color: '#888', backgroundColor: '#2a2a2a', alignSelf: 'flex-start', paddingHorizontal: 8, paddingVertical: 2, borderRadius: 4, marginBottom: 6 },
   tagRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 5 },
-  tag: { backgroundColor: '#7c6cfa22', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 4 },
-  tagText: { color: '#7c6cfa', fontSize: 11 }
+  tag: { backgroundColor: '#e0782022', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 4 },
+  tagText: { color: '#e07820', fontSize: 11 }
 })

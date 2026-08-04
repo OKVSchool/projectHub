@@ -52,7 +52,7 @@ export default function ProjectDetail() {
     <div style={{ maxWidth: 720, margin: '0 auto' }}>
       <button
         onClick={() => router.push('/')}
-        style={{ background: 'none', border: 'none', color: '#7c6cfa', marginBottom: '1.5rem', fontSize: '0.875rem' }}
+        style={{ background: 'none', border: 'none', color: '#e07820', marginBottom: '1.5rem', fontSize: '0.875rem' }}
       >
         ← Back to projects
       </button>
@@ -89,12 +89,12 @@ export default function ProjectDetail() {
           <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', fontSize: '0.875rem', color: '#888' }}>
             {project.framework && <span>Framework: <strong style={{ color: '#e5e5e5' }}>{project.framework}</strong></span>}
             {project.status && <span>Status: <strong style={{ color: '#e5e5e5' }}>{project.status}</strong></span>}
-            {project.repoUrl && <a href={project.repoUrl} target="_blank" rel="noopener noreferrer" style={{ color: '#7c6cfa' }}>Repo ↗</a>}
+            {project.repoUrl && <a href={project.repoUrl} target="_blank" rel="noopener noreferrer" style={{ color: '#e07820' }}>Repo ↗</a>}
           </div>
           {project.tags?.length > 0 && (
             <div style={{ display: 'flex', gap: '0.35rem', flexWrap: 'wrap', marginTop: '0.75rem' }}>
               {project.tags.map(tag => (
-                <span key={tag} style={{ fontSize: '0.75rem', background: '#7c6cfa22', color: '#7c6cfa', padding: '0.2rem 0.5rem', borderRadius: 4 }}>
+                <span key={tag} style={{ fontSize: '0.75rem', background: '#e0782022', color: '#e07820', padding: '0.2rem 0.5rem', borderRadius: 4 }}>
                   {tag}
                 </span>
               ))}
@@ -120,7 +120,7 @@ const inputStyle = {
 }
 
 const btnStyle = {
-  background: '#7c6cfa',
+  background: '#e07820',
   color: '#fff',
   border: 'none',
   padding: '0.5rem 1rem',

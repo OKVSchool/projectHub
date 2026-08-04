@@ -4,7 +4,7 @@ import Link from 'next/link'
 
 const STATUS_COLORS = {
   active: '#22c55e',
-  completed: '#7c6cfa',
+  completed: '#e07820',
   paused: '#f59e0b'
 }
 
@@ -55,7 +55,7 @@ export default function ProjectCard({ project }) {
           {project.tags?.length > 0 && (
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.35rem', marginTop: '0.75rem' }}>
               {project.tags.map(tag => (
-                <span key={tag} style={{ fontSize: '0.7rem', background: '#7c6cfa22', color: '#7c6cfa', padding: '0.15rem 0.4rem', borderRadius: 4 }}>
+                <span key={tag} style={{ fontSize: '0.7rem', background: '#e0782022', color: '#e07820', padding: '0.15rem 0.4rem', borderRadius: 4 }}>
                   {tag}
                 </span>
               ))}

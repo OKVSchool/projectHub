@@ -32,7 +32,7 @@ export default function ProjectList() {
         <h1 style={{ fontSize: '1.75rem', fontWeight: 700 }}>My Projects</h1>
         <button
           onClick={() => router.push('/projects/new')}
-          style={{ background: '#7c6cfa', color: '#fff', border: 'none', padding: '0.5rem 1.25rem', borderRadius: 6, fontWeight: 600 }}
+          style={{ background: '#e07820', color: '#fff', border: 'none', padding: '0.5rem 1.25rem', borderRadius: 6, fontWeight: 600 }}
         >
           + New Project
         </button>

@@ -5,7 +5,7 @@ const ideaSchema = new mongoose.Schema({
   description: { type: String, default: '' },
   category: { type: String },
   status: { type: String, enum: ['active', 'parked', 'promoted'], default: 'active' },
-  priority: { type: String, enum: ['low', 'medium', 'high'], default: 'medium' },
+  priority: { type: String, enum: ['none', 'low', 'medium', 'high'], default: 'none' },
   promotedToProjectId: { type: mongoose.Schema.Types.ObjectId, ref: 'Project', default: null },
   userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true }
 }, { timestamps: true })

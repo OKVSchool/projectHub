@@ -8,7 +8,7 @@ export default function TabLayout() {
   if (loading) {
     return (
       <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#0f0f0f' }}>
-        <ActivityIndicator color="#7c6cfa" />
+        <ActivityIndicator color="#e07820" />
       </View>
     )
   }
@@ -19,7 +19,7 @@ export default function TabLayout() {
     <Tabs
       screenOptions={{
         tabBarStyle: { backgroundColor: '#1a1a1a', borderTopColor: '#2a2a2a' },
-        tabBarActiveTintColor: '#7c6cfa',
+        tabBarActiveTintColor: '#e07820',
         tabBarInactiveTintColor: '#555',
         headerStyle: { backgroundColor: '#1a1a1a' },
         headerTintColor: '#e5e5e5',

@@ -55,6 +55,6 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#0f0f0f' },
   heading: { fontSize: 22, fontWeight: '700', color: '#e5e5e5', marginBottom: 6 },
   input: { backgroundColor: '#1a1a1a', borderWidth: 1, borderColor: '#2a2a2a', color: '#e5e5e5', padding: 14, borderRadius: 8, fontSize: 15 },
-  btn: { backgroundColor: '#7c6cfa', padding: 16, borderRadius: 8, alignItems: 'center', marginTop: 6 },
+  btn: { backgroundColor: '#e07820', padding: 16, borderRadius: 8, alignItems: 'center', marginTop: 6 },
   btnText: { color: '#fff', fontWeight: '700', fontSize: 16 }
 })

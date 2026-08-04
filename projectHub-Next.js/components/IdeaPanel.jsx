@@ -55,9 +55,11 @@ export default function IdeaPanel({ idea, thoughts, onUpdate, onUpdateThoughts }
         ) : (
           <span style={{ flex: 1, fontWeight: 500 }}>{idea.title}</span>
         )}
-        <span style={{ fontSize: '0.7rem', fontWeight: 600, color: priorityColors[idea.priority] || '#888', textTransform: 'uppercase' }}>
-          {idea.priority}
-        </span>
+        {idea.priority && idea.priority !== 'none' && (
+          <span style={{ fontSize: '0.7rem', fontWeight: 600, color: priorityColors[idea.priority], textTransform: 'uppercase' }}>
+            {idea.priority}
+          </span>
+        )}
         <button onClick={e => { e.stopPropagation(); setEditing(true) }} style={iconBtn}>✏️</button>
         <button onClick={e => { e.stopPropagation(); deleteIdea() }} style={iconBtn}>🗑</button>
       </div>
@@ -89,4 +91,4 @@ export default function IdeaPanel({ idea, thoughts, onUpdate, onUpdateThoughts }
 
 const iconBtn = { background: 'none', border: 'none', cursor: 'pointer', fontSize: '0.9rem', padding: '0.1rem 0.25rem' }
 const miniInput = { background: '#0f0f0f', border: '1px solid #333', color: '#e5e5e5', padding: '0.4rem 0.6rem', borderRadius: 4, fontSize: '0.85rem' }
-const miniBtn = { background: '#7c6cfa', color: '#fff', border: 'none', padding: '0.4rem 0.7rem', borderRadius: 4, fontSize: '0.85rem', cursor: 'pointer' }
+const miniBtn = { background: '#e07820', color: '#fff', border: 'none', padding: '0.4rem 0.7rem', borderRadius: 4, fontSize: '0.85rem', cursor: 'pointer' }

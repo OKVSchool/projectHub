@@ -54,7 +54,7 @@ export default function TaskList({ parentId, parentType }) {
             placeholder="Task title"
             style={{ flex: 1, background: '#1a1a1a', border: '1px solid #2a2a2a', color: '#e5e5e5', padding: '0.5rem 0.75rem', borderRadius: 6, fontSize: '0.875rem' }}
           />
-          <button type="submit" style={{ background: '#7c6cfa', color: '#fff', border: 'none', padding: '0.5rem 1rem', borderRadius: 6, fontWeight: 600 }}>
+          <button type="submit" style={{ background: '#e07820', color: '#fff', border: 'none', padding: '0.5rem 1rem', borderRadius: 6, fontWeight: 600 }}>
             Add
           </button>
         </form>
@@ -78,7 +78,7 @@ export default function TaskList({ parentId, parentType }) {
                 type="checkbox"
                 checked={task.done}
                 onChange={() => toggleDone(task)}
-                style={{ accentColor: '#7c6cfa', width: 16, height: 16 }}
+                style={{ accentColor: '#e07820', width: 16, height: 16 }}
               />
               <span style={{ flex: 1, textDecoration: task.done ? 'line-through' : 'none', color: task.done ? '#555' : '#e5e5e5', fontSize: '0.9rem' }}>
                 {task.title}

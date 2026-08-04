@@ -58,7 +58,7 @@ export default function Login() {
       </form>
 
       <p style={{ textAlign: 'center', marginTop: '1.25rem', color: '#888', fontSize: '0.875rem' }}>
-        No account? <Link href="/signup" style={{ color: '#7c6cfa' }}>Sign up</Link>
+        No account? <Link href="/signup" style={{ color: '#e07820' }}>Sign up</Link>
       </p>
     </div>
   )
@@ -76,7 +76,7 @@ const inputStyle = {
 }
 
 const btnStyle = {
-  background: '#7c6cfa',
+  background: '#e07820',
   color: '#fff',
   border: 'none',
   padding: '0.75rem',

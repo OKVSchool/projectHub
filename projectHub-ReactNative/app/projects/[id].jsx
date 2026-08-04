@@ -39,7 +39,7 @@ export default function ProjectDetail() {
 
   if (!project) return (
     <View style={{ flex: 1, backgroundColor: '#0f0f0f', justifyContent: 'center', alignItems: 'center' }}>
-      <ActivityIndicator color="#7c6cfa" />
+      <ActivityIndicator color="#e07820" />
     </View>
   )
 
@@ -71,7 +71,7 @@ export default function ProjectDetail() {
         <View style={styles.sectionHeader}>
           <Text style={styles.sectionTitle}>Tasks</Text>
           <TouchableOpacity onPress={() => setAddingTask(a => !a)}>
-            <Text style={{ color: '#7c6cfa', fontSize: 14 }}>+ Add</Text>
+            <Text style={{ color: '#e07820', fontSize: 14 }}>+ Add</Text>
           </TouchableOpacity>
         </View>
 
@@ -114,18 +114,18 @@ const styles = StyleSheet.create({
   meta: { color: '#888', fontSize: 13 },
   description: { color: '#aaa', fontSize: 15, lineHeight: 22 },
   tagRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 6 },
-  tag: { backgroundColor: '#7c6cfa22', paddingHorizontal: 8, paddingVertical: 3, borderRadius: 4 },
-  tagText: { color: '#7c6cfa', fontSize: 12 },
+  tag: { backgroundColor: '#e0782022', paddingHorizontal: 8, paddingVertical: 3, borderRadius: 4 },
+  tagText: { color: '#e07820', fontSize: 12 },
   section: { backgroundColor: '#1a1a1a', borderWidth: 1, borderColor: '#2a2a2a', borderRadius: 10, padding: 16, gap: 10 },
   sectionHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   sectionTitle: { fontWeight: '700', fontSize: 16, color: '#e5e5e5' },
   task: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 6 },
   checkbox: { width: 20, height: 20, borderRadius: 4, borderWidth: 2, borderColor: '#444', alignItems: 'center', justifyContent: 'center' },
-  checkboxDone: { backgroundColor: '#7c6cfa', borderColor: '#7c6cfa' },
+  checkboxDone: { backgroundColor: '#e07820', borderColor: '#e07820' },
   taskTitle: { flex: 1, color: '#e5e5e5', fontSize: 15 },
   taskDone: { color: '#555', textDecorationLine: 'line-through' },
   addRow: { flexDirection: 'row', gap: 8 },
   addInput: { flex: 1, backgroundColor: '#0f0f0f', borderWidth: 1, borderColor: '#333', color: '#e5e5e5', padding: 10, borderRadius: 6, fontSize: 14 },
-  addBtn: { backgroundColor: '#7c6cfa', paddingHorizontal: 14, borderRadius: 6, justifyContent: 'center' },
+  addBtn: { backgroundColor: '#e07820', paddingHorizontal: 14, borderRadius: 6, justifyContent: 'center' },
   addBtnText: { color: '#fff', fontWeight: '700' }
 })

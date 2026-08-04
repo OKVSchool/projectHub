@@ -39,7 +39,7 @@ export default function ProjectIdeas() {
       <ScrollView
         style={{ flex: 1 }}
         contentContainerStyle={{ padding: 16, gap: 12 }}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#7c6cfa" />}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#e07820" />}
       >
         {tab === 'thoughts' && <ThoughtsTab thoughts={thoughts.filter(t => !t.ideaId && !t.projectId)} onRefresh={load} />}
         {tab === 'ideas' && <IdeasTab ideas={ideas} thoughts={thoughts} onRefresh={load} />}
@@ -157,9 +157,9 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#0f0f0f' },
   tabBar: { flexDirection: 'row', backgroundColor: '#1a1a1a', borderBottomWidth: 1, borderBottomColor: '#2a2a2a' },
   tabBtn: { flex: 1, paddingVertical: 12, alignItems: 'center', borderBottomWidth: 2, borderBottomColor: 'transparent' },
-  tabActive: { borderBottomColor: '#7c6cfa' },
+  tabActive: { borderBottomColor: '#e07820' },
   tabText: { color: '#555', fontSize: 14, fontWeight: '500' },
-  tabTextActive: { color: '#7c6cfa', fontWeight: '700' },
+  tabTextActive: { color: '#e07820', fontWeight: '700' },
   card: { flexDirection: 'row', alignItems: 'center', gap: 10, backgroundColor: '#1a1a1a', borderWidth: 1, borderColor: '#2a2a2a', borderRadius: 8, padding: 12 },
   accordion: { backgroundColor: '#1a1a1a', borderWidth: 1, borderColor: '#2a2a2a', borderRadius: 8, overflow: 'hidden' },
   accordionHeader: { flexDirection: 'row', alignItems: 'center', gap: 10, padding: 12 },
@@ -171,8 +171,8 @@ const styles = StyleSheet.create({
   priority: { fontSize: 11, fontWeight: '700', textTransform: 'uppercase' },
   addRow: { flexDirection: 'row', gap: 8 },
   addInput: { flex: 1, backgroundColor: '#1a1a1a', borderWidth: 1, borderColor: '#2a2a2a', color: '#e5e5e5', padding: 10, borderRadius: 8, fontSize: 15 },
-  addBtn: { backgroundColor: '#7c6cfa', padding: 10, borderRadius: 8, justifyContent: 'center' },
+  addBtn: { backgroundColor: '#e07820', padding: 10, borderRadius: 8, justifyContent: 'center' },
   addBtnText: { color: '#fff', fontWeight: '700' },
   addTrigger: { backgroundColor: '#1a1a1a', borderWidth: 1, borderColor: '#2a2a2a', borderRadius: 8, padding: 12, alignItems: 'center' },
-  addTriggerText: { color: '#7c6cfa', fontWeight: '600' }
+  addTriggerText: { color: '#e07820', fontWeight: '600' }
 })

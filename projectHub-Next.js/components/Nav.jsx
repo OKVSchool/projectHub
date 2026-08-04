@@ -15,7 +15,7 @@ export default function Nav() {
       justifyContent: 'space-between',
       alignItems: 'center'
     }}>
-      <Link href="/" style={{ fontSize: '1.25rem', fontWeight: 700, color: '#7c6cfa' }}>
+      <Link href="/" style={{ fontSize: '1.25rem', fontWeight: 700, color: '#e07820' }}>
         projectHub
       </Link>
       <div style={{ display: 'flex', gap: '1.5rem', alignItems: 'center' }}>
