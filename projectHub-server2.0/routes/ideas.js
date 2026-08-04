@@ -2,6 +2,7 @@ const router = require('express').Router()
 const Idea = require('../models/Idea')
 const requireAuth = require('../middleware/requireAuth')
 const validate = require('../middleware/validate')
+const { clientError } = require('../middleware/httpError')
 
 const ideaRules = {
   title:       { required: true, minLength: 1, maxLength: 100 },
@@ -18,8 +19,8 @@ router.get('/', async (req, res) => {
     const filter = req.user.role === 'admin' ? {} : { userId: req.user._id }
     const ideas = await Idea.find(filter).sort({ createdAt: -1 })
     res.json(ideas)
-  } catch (err) {
-    res.status(500).json({ error: err.message })
+  } catch {
+    res.status(500).json({ error: 'Something went wrong' })
   }
 })
 
@@ -28,7 +29,7 @@ router.post('/', validate(ideaRules), async (req, res) => {
     const idea = await Idea.create({ ...req.body, userId: req.user._id })
     res.status(201).json(idea)
   } catch (err) {
-    res.status(400).json({ error: err.message })
+    res.status(400).json({ error: clientError(err) })
   }
 })
 
@@ -37,8 +38,8 @@ router.get('/:id', async (req, res) => {
     const idea = await Idea.findOne({ _id: req.params.id, userId: req.user._id })
     if (!idea) return res.status(404).json({ error: 'Idea not found' })
     res.json(idea)
-  } catch (err) {
-    res.status(500).json({ error: err.message })
+  } catch {
+    res.status(500).json({ error: 'Something went wrong' })
   }
 })
 
@@ -52,7 +53,7 @@ router.put('/:id', validate(ideaRules, { requireAll: false }), async (req, res) 
     if (!idea) return res.status(404).json({ error: 'Idea not found' })
     res.json(idea)
   } catch (err) {
-    res.status(400).json({ error: err.message })
+    res.status(400).json({ error: clientError(err) })
   }
 })
 
@@ -61,8 +62,8 @@ router.delete('/:id', async (req, res) => {
     const idea = await Idea.findOneAndDelete({ _id: req.params.id, userId: req.user._id })
     if (!idea) return res.status(404).json({ error: 'Idea not found' })
     res.json({ message: 'Idea deleted' })
-  } catch (err) {
-    res.status(500).json({ error: err.message })
+  } catch {
+    res.status(500).json({ error: 'Something went wrong' })
   }
 })
 

@@ -2,6 +2,7 @@ const router = require('express').Router()
 const jwt = require('jsonwebtoken')
 const User = require('../models/User')
 const validate = require('../middleware/validate')
+const { clientError } = require('../middleware/httpError')
 
 const signToken = (userId) =>
   jwt.sign({ userId }, process.env.JWT_SECRET, { expiresIn: '7d' })
@@ -30,7 +31,7 @@ router.post('/signup', validate(signupRules), async (req, res) => {
     const user = await User.create({ email, password, name })
     res.status(201).json({ token: signToken(user._id), user: userPayload(user) })
   } catch (err) {
-    res.status(400).json({ error: err.message })
+    res.status(400).json({ error: clientError(err) })
   }
 })
 
@@ -42,8 +43,8 @@ router.post('/login', validate(loginRules), async (req, res) => {
       return res.status(401).json({ error: 'Invalid email or password' })
     }
     res.json({ token: signToken(user._id), user: userPayload(user) })
-  } catch (err) {
-    res.status(400).json({ error: err.message })
+  } catch {
+    res.status(500).json({ error: 'Something went wrong' })
   }
 })
 

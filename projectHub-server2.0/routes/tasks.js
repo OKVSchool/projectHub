@@ -2,6 +2,7 @@ const router = require('express').Router()
 const Task = require('../models/Task')
 const requireAuth = require('../middleware/requireAuth')
 const validate = require('../middleware/validate')
+const { clientError } = require('../middleware/httpError')
 
 const taskRules = {
   title: { required: true, minLength: 1, maxLength: 200 },
@@ -19,8 +20,8 @@ router.get('/', async (req, res) => {
     if (thoughtId) filter.thoughtId = thoughtId
     const tasks = await Task.find(filter).sort({ createdAt: -1 })
     res.json(tasks)
-  } catch (err) {
-    res.status(500).json({ error: err.message })
+  } catch {
+    res.status(500).json({ error: 'Something went wrong' })
   }
 })
 
@@ -29,7 +30,7 @@ router.post('/', validate(taskRules), async (req, res) => {
     const task = await Task.create({ ...req.body, userId: req.user._id })
     res.status(201).json(task)
   } catch (err) {
-    res.status(400).json({ error: err.message })
+    res.status(400).json({ error: clientError(err) })
   }
 })
 
@@ -38,8 +39,8 @@ router.get('/:id', async (req, res) => {
     const task = await Task.findOne({ _id: req.params.id, userId: req.user._id })
     if (!task) return res.status(404).json({ error: 'Task not found' })
     res.json(task)
-  } catch (err) {
-    res.status(500).json({ error: err.message })
+  } catch {
+    res.status(500).json({ error: 'Something went wrong' })
   }
 })
 
@@ -53,7 +54,7 @@ router.put('/:id', validate(taskRules, { requireAll: false }), async (req, res) 
     if (!task) return res.status(404).json({ error: 'Task not found' })
     res.json(task)
   } catch (err) {
-    res.status(400).json({ error: err.message })
+    res.status(400).json({ error: clientError(err) })
   }
 })
 
@@ -62,8 +63,8 @@ router.delete('/:id', async (req, res) => {
     const task = await Task.findOneAndDelete({ _id: req.params.id, userId: req.user._id })
     if (!task) return res.status(404).json({ error: 'Task not found' })
     res.json({ message: 'Task deleted' })
-  } catch (err) {
-    res.status(500).json({ error: err.message })
+  } catch {
+    res.status(500).json({ error: 'Something went wrong' })
   }
 })
 
