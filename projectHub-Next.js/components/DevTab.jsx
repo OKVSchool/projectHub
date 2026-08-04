@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { api } from '@/lib/api'
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'
 
@@ -10,6 +11,46 @@ function getToken() {
 }
 
 const LIVE_TESTS = [
+  {
+    label: '400 — POST /projects with no title',
+    description: 'Sends an empty body to a protected POST route. The validate middleware should reject it.',
+    run: async () => {
+      const res = await fetch(`${BASE_URL}/projects`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${getToken()}` },
+        body: JSON.stringify({})
+      })
+      return { status: res.status, data: await res.json() }
+    }
+  },
+  {
+    label: '401 — GET /projects with a fake token',
+    description: 'Sends a completely fabricated JWT string. requireAuth should reject it before hitting any route logic.',
+    run: async () => {
+      const res = await fetch(`${BASE_URL}/projects`, {
+        headers: { Authorization: 'Bearer this-is-not-a-valid-token' }
+      })
+      return { status: res.status, data: await res.json() }
+    }
+  },
+  {
+    label: '404 — GET /projects/[nonexistent id]',
+    description: 'Requests a valid-format ObjectId that does not exist in the database.',
+    run: async () => {
+      const res = await fetch(`${BASE_URL}/projects/000000000000000000000000`, {
+        headers: { Authorization: `Bearer ${getToken()}` }
+      })
+      return { status: res.status, data: await res.json() }
+    }
+  },
+  {
+    label: 'Loading — GET /projects (live)',
+    description: 'Fires the real getProjects call. Watch the button go into loading before the response arrives.',
+    run: async () => {
+      const data = await api.getProjects()
+      return { status: 200, data }
+    }
+  },
   {
     label: 'Attack 2 — Tampered token',
     description: 'Takes your real JWT and flips one character in the signature segment, then sends it. requireAuth calls jwt.verify() — a modified signature should fail immediately.',
