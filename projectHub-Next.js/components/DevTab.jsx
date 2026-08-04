@@ -339,6 +339,14 @@ function LiveTest({ test }) {
           >
             Run
           </button>
+          {state.phase === 'done' && (
+            <button
+              onClick={() => setState({ phase: 'idle', status: null, data: null })}
+              style={{ background: 'none', border: '1px solid #333', color: '#666', padding: '0.4rem 0.6rem', borderRadius: 4, fontSize: '0.8rem', cursor: 'pointer', lineHeight: 1 }}
+            >
+              ✕
+            </button>
+          )}
         </div>
       </div>
       {state.phase === 'done' && (
