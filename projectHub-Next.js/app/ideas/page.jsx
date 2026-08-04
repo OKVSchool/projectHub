@@ -13,7 +13,7 @@ const TABS = ['thoughts', 'ideas', 'projects']
 export default function ProjectIdeas() {
   const { user, loading } = useAuth()
   const router = useRouter()
-  const [tab, setTab] = useState('ideas')
+  const [tab, setTab] = useState('projects')
   const [ideas, setIdeas] = useState([])
   const [thoughts, setThoughts] = useState([])
   const [projects, setProjects] = useState([])
