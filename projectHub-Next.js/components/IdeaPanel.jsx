@@ -9,12 +9,19 @@ export default function IdeaPanel({ idea, thoughts, onUpdate, onUpdateThoughts }
   const [open, setOpen] = useState(false)
   const [editing, setEditing] = useState(false)
   const [title, setTitle] = useState(idea.title)
+  const [priority, setPriority] = useState(idea.priority || 'none')
   const [newThought, setNewThought] = useState('')
   const [addingThought, setAddingThought] = useState(false)
 
   async function saveTitle() {
     await api.updateIdea(idea._id, { title })
     setEditing(false)
+    onUpdate()
+  }
+
+  async function savePriority(val) {
+    setPriority(val)
+    await api.updateIdea(idea._id, { priority: val })
     onUpdate()
   }
 
@@ -33,7 +40,7 @@ export default function IdeaPanel({ idea, thoughts, onUpdate, onUpdateThoughts }
     onUpdateThoughts()
   }
 
-  const priorityColors = { low: '#22c55e', medium: '#f59e0b', high: '#ef4444' }
+  const priorityColors = { none: '#555', low: '#22c55e', medium: '#f59e0b', high: '#ef4444' }
 
   return (
     <div style={{ background: '#1a1a1a', border: '1px solid #2a2a2a', borderRadius: 8 }}>
@@ -55,11 +62,27 @@ export default function IdeaPanel({ idea, thoughts, onUpdate, onUpdateThoughts }
         ) : (
           <span style={{ flex: 1, fontWeight: 500 }}>{idea.title}</span>
         )}
-        {idea.priority && idea.priority !== 'none' && (
-          <span style={{ fontSize: '0.7rem', fontWeight: 600, color: priorityColors[idea.priority], textTransform: 'uppercase' }}>
-            {idea.priority}
-          </span>
-        )}
+        <select
+          value={priority}
+          onChange={e => { e.stopPropagation(); savePriority(e.target.value) }}
+          onClick={e => e.stopPropagation()}
+          style={{
+            background: 'transparent',
+            border: 'none',
+            fontSize: '0.7rem',
+            fontWeight: 600,
+            color: priorityColors[priority] || '#555',
+            textTransform: 'uppercase',
+            cursor: 'pointer',
+            outline: 'none',
+            padding: 0
+          }}
+        >
+          <option value="none">— priority</option>
+          <option value="low">low</option>
+          <option value="medium">medium</option>
+          <option value="high">high</option>
+        </select>
         <button onClick={e => { e.stopPropagation(); setEditing(true) }} style={iconBtn}>✏️</button>
         <button onClick={e => { e.stopPropagation(); deleteIdea() }} style={iconBtn}>🗑</button>
       </div>
