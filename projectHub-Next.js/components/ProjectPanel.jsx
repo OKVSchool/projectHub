@@ -2,10 +2,22 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
+import { api } from '@/lib/api'
 import ThoughtPanel from './ThoughtPanel'
 
-export default function ProjectPanel({ project, thoughts }) {
+export default function ProjectPanel({ project, thoughts, onUpdateThoughts }) {
   const [open, setOpen] = useState(false)
+  const [addingThought, setAddingThought] = useState(false)
+  const [newThought, setNewThought] = useState('')
+
+  async function addThought(e) {
+    e.preventDefault()
+    if (!newThought.trim()) return
+    await api.createThought({ title: newThought, projectId: project._id })
+    setNewThought('')
+    setAddingThought(false)
+    onUpdateThoughts()
+  }
 
   return (
     <div style={{ background: '#1a1a1a', border: '1px solid #2a2a2a', borderRadius: 8 }}>
@@ -30,11 +42,24 @@ export default function ProjectPanel({ project, thoughts }) {
           <div style={{ marginTop: '0.75rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
             {thoughts.length === 0
               ? <p style={{ color: '#555', fontSize: '0.875rem' }}>No thoughts linked to this project.</p>
-              : thoughts.map(t => <ThoughtPanel key={t._id} thought={t} onDelete={() => {}} nested />)
+              : thoughts.map(t => <ThoughtPanel key={t._id} thought={t} onDelete={onUpdateThoughts} nested />)
             }
           </div>
+
+          {addingThought ? (
+            <form onSubmit={addThought} style={{ display: 'flex', gap: '0.5rem', marginTop: '0.75rem' }}>
+              <input autoFocus value={newThought} onChange={e => setNewThought(e.target.value)} placeholder="New thought…" style={miniInput} />
+              <button type="submit" style={miniBtn}>Add</button>
+              <button type="button" onClick={() => setAddingThought(false)} style={{ ...miniBtn, background: '#2a2a2a' }}>✕</button>
+            </form>
+          ) : (
+            <button onClick={() => setAddingThought(true)} style={{ ...miniBtn, marginTop: '0.75rem' }}>+ Thought</button>
+          )}
         </div>
       )}
     </div>
   )
 }
+
+const miniInput = { flex: 1, background: '#0f0f0f', border: '1px solid #333', color: '#e5e5e5', padding: '0.4rem 0.6rem', borderRadius: 4, fontSize: '0.85rem' }
+const miniBtn = { background: '#e07820', color: '#fff', border: 'none', padding: '0.4rem 0.7rem', borderRadius: 4, fontSize: '0.85rem', cursor: 'pointer' }

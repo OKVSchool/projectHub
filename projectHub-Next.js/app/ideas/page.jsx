@@ -67,7 +67,7 @@ export default function ProjectIdeas() {
         <IdeasTab ideas={ideas} thoughts={thoughts} refresh={refreshIdeas} refreshThoughts={refreshThoughts} />
       )}
       {tab === 'projects' && (
-        <ProjectsTab projects={projects} thoughts={thoughts} />
+        <ProjectsTab projects={projects} thoughts={thoughts} refreshThoughts={refreshThoughts} />
       )}
     </div>
   )
@@ -103,13 +103,13 @@ function IdeasTab({ ideas, thoughts, refresh, refreshThoughts }) {
   )
 }
 
-function ProjectsTab({ projects, thoughts }) {
+function ProjectsTab({ projects, thoughts, refreshThoughts }) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
       {projects.length === 0 ? (
         <p style={{ color: '#555' }}>No projects yet.</p>
       ) : projects.map(p => (
-        <ProjectPanel key={p._id} project={p} thoughts={thoughts.filter(t => t.projectId === p._id)} />
+        <ProjectPanel key={p._id} project={p} thoughts={thoughts.filter(t => t.projectId === p._id)} onUpdateThoughts={refreshThoughts} />
       ))}
     </div>
   )
