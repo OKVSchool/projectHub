@@ -11,21 +11,50 @@ function getToken() {
 }
 
 const LIVE_TESTS = [
+
+  // ── BASIC ──────────────────────────────────────────────────────────────────
+  { isSection: true, title: 'Basic' },
   {
-    label: '400 — POST /projects with no title',
-    description: 'Sends an empty body to a protected POST route. The validate middleware should reject it.',
+    label: 'Loading — GET /projects (live)',
+    description: 'Fires the real getProjects call. Watch the button enter loading state before the response arrives.',
     run: async () => {
-      const res = await fetch(`${BASE_URL}/projects`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${getToken()}` },
-        body: JSON.stringify({})
-      })
+      const data = await api.getProjects()
+      return { status: 200, data }
+    }
+  },
+  {
+    label: 'Full CRUD lifecycle — project',
+    description: 'Creates a test project, reads it back, updates it, then deletes it. All four operations must succeed and clean up after themselves.',
+    run: async () => {
+      const created = await api.createProject({ title: '__dev_crud_test__', description: 'Created by Dev tab' })
+      const read    = await api.getProject(created._id)
+      const updated = await api.updateProject(created._id, { title: '__dev_crud_test__ — updated' })
+      const deleted = await api.deleteProject(created._id)
+      return {
+        status: 200,
+        data: {
+          '1 create (201)': { id: created._id, title: created.title },
+          '2 read   (200)': { title: read.title, idMatch: read._id === created._id },
+          '3 update (200)': { title: updated.title },
+          '4 delete (200)': deleted,
+        }
+      }
+    }
+  },
+
+  // ── AUTH ───────────────────────────────────────────────────────────────────
+  { isSection: true, title: 'Auth' },
+  {
+    label: 'No Authorization header',
+    description: 'Sends a request with no Authorization header at all. Hits the startsWith("Bearer") check — a different code path from an invalid token.',
+    run: async () => {
+      const res = await fetch(`${BASE_URL}/projects`)
       return { status: res.status, data: await res.json() }
     }
   },
   {
-    label: '401 — GET /projects with a fake token',
-    description: 'Sends a completely fabricated JWT string. requireAuth should reject it before hitting any route logic.',
+    label: '401 — Completely fake token',
+    description: 'Sends a fabricated string as the Bearer token. requireAuth calls jwt.verify() which rejects it immediately.',
     run: async () => {
       const res = await fetch(`${BASE_URL}/projects`, {
         headers: { Authorization: 'Bearer this-is-not-a-valid-token' }
@@ -34,26 +63,8 @@ const LIVE_TESTS = [
     }
   },
   {
-    label: '404 — GET /projects/[nonexistent id]',
-    description: 'Requests a valid-format ObjectId that does not exist in the database.',
-    run: async () => {
-      const res = await fetch(`${BASE_URL}/projects/000000000000000000000000`, {
-        headers: { Authorization: `Bearer ${getToken()}` }
-      })
-      return { status: res.status, data: await res.json() }
-    }
-  },
-  {
-    label: 'Loading — GET /projects (live)',
-    description: 'Fires the real getProjects call. Watch the button go into loading before the response arrives.',
-    run: async () => {
-      const data = await api.getProjects()
-      return { status: 200, data }
-    }
-  },
-  {
-    label: 'Attack 2 — Tampered token',
-    description: 'Takes your real JWT and flips one character in the signature segment, then sends it. requireAuth calls jwt.verify() — a modified signature should fail immediately.',
+    label: 'Attack 2 — Tampered token (real JWT, flipped signature)',
+    description: 'Takes your real JWT and flips one character in the signature segment. The header and payload are untouched — only the signature is wrong.',
     run: async () => {
       const token = getToken()
       if (!token) return { status: 'ERR', data: { error: 'Not logged in — no token in localStorage' } }
@@ -68,8 +79,81 @@ const LIVE_TESTS = [
     }
   },
   {
-    label: 'Attack 3 — Injection-style bad input',
-    description: 'POSTs a title that is 150 characters long — 50 over the 100-char max. The validate middleware should reject it before any database write.',
+    label: 'Login — wrong password',
+    description: 'Sends a POST /auth/login with a valid email format but the wrong password. Should return 401 without revealing whether the email exists.',
+    run: async () => {
+      const res = await fetch(`${BASE_URL}/auth/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: 'test@example.com', password: 'definitelywrong99' })
+      })
+      return { status: res.status, data: await res.json() }
+    }
+  },
+  {
+    label: 'Signup — duplicate email',
+    description: 'Attempts to create an account with an email that is already registered. Should return 400 via the clientError() 11000 handler — not a raw MongoDB error.',
+    run: async () => {
+      const res = await fetch(`${BASE_URL}/auth/signup`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: 'Dup User', email: 'duplicate@test.com', password: 'password123' })
+      })
+      const first = await res.json()
+      const res2 = await fetch(`${BASE_URL}/auth/signup`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: 'Dup User', email: 'duplicate@test.com', password: 'password123' })
+      })
+      const second = await res2.json()
+      return {
+        status: res2.status,
+        data: { firstAttempt: first.token ? 'account created' : first.error, secondAttempt: second }
+      }
+    }
+  },
+
+  // ── VALIDATION ─────────────────────────────────────────────────────────────
+  { isSection: true, title: 'Validation' },
+  {
+    label: '400 — POST /projects with no title (required field missing)',
+    description: 'Sends an empty body. The validate middleware should reject it before any database write occurs.',
+    run: async () => {
+      const res = await fetch(`${BASE_URL}/projects`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${getToken()}` },
+        body: JSON.stringify({})
+      })
+      return { status: res.status, data: await res.json() }
+    }
+  },
+  {
+    label: '400 — Invalid enum value',
+    description: 'Sends status: "flying" — not in the allowed enum [active, completed, paused, deployed]. Validate middleware should catch it.',
+    run: async () => {
+      const res = await fetch(`${BASE_URL}/projects`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${getToken()}` },
+        body: JSON.stringify({ title: 'Enum test', status: 'flying' })
+      })
+      return { status: res.status, data: await res.json() }
+    }
+  },
+  {
+    label: '400 — Invalid URL format',
+    description: 'Sends repoUrl: "not-a-url" — fails the isUrl rule (must start with http:// or https://).',
+    run: async () => {
+      const res = await fetch(`${BASE_URL}/projects`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${getToken()}` },
+        body: JSON.stringify({ title: 'URL test', repoUrl: 'not-a-url' })
+      })
+      return { status: res.status, data: await res.json() }
+    }
+  },
+  {
+    label: 'Attack 3 — Oversized title + script tag in description',
+    description: 'Sends a title 150 chars long (max is 100) and a <script> tag in description. Both should be caught by validate middleware.',
     run: async () => {
       const res = await fetch(`${BASE_URL}/projects`, {
         method: 'POST',
@@ -80,8 +164,35 @@ const LIVE_TESTS = [
     }
   },
   {
-    label: "Attack 4 — Another user's data",
-    description: "Sends a DELETE for an ObjectId that exists in the database but belongs to a different user. The ownership filter { _id, userId } should make it a miss — no deletion should occur.",
+    label: '200 — PUT with empty body (partial update allowed)',
+    description: 'Sends a PUT with no fields. requireAll: false means nothing is required on updates — this should pass and return the unchanged document.',
+    run: async () => {
+      const projects = await api.getProjects()
+      if (!projects.length) return { status: 'SKIP', data: { note: 'No projects to update — create one first' } }
+      const res = await fetch(`${BASE_URL}/projects/${projects[0]._id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${getToken()}` },
+        body: JSON.stringify({})
+      })
+      return { status: res.status, data: await res.json() }
+    }
+  },
+
+  // ── OWNERSHIP ──────────────────────────────────────────────────────────────
+  { isSection: true, title: 'Ownership' },
+  {
+    label: '404 — GET /projects/[nonexistent id]',
+    description: 'Requests a valid-format ObjectId that does not exist. The ownership-scoped query finds nothing and returns 404.',
+    run: async () => {
+      const res = await fetch(`${BASE_URL}/projects/000000000000000000000000`, {
+        headers: { Authorization: `Bearer ${getToken()}` }
+      })
+      return { status: res.status, data: await res.json() }
+    }
+  },
+  {
+    label: "Attack 4 — DELETE another user's project",
+    description: "Sends a DELETE for a valid ObjectId that belongs to a different user. The { _id, userId } filter finds no match — the document is untouched and the response is 404, not 403, so existence is not revealed.",
     run: async () => {
       const res = await fetch(`${BASE_URL}/projects/507f1f77bcf86cd799439011`, {
         method: 'DELETE',
@@ -90,9 +201,12 @@ const LIVE_TESTS = [
       return { status: res.status, data: await res.json() }
     }
   },
+
+  // ── UPLOADS ────────────────────────────────────────────────────────────────
+  { isSection: true, title: 'Uploads' },
   {
-    label: 'Attack 5 — Oversized upload',
-    description: 'Constructs a 6 MB Blob (over the 5 MB multer limit) and posts it as an image. Multer should reject it before writing anything to disk.',
+    label: 'Attack 5 — Oversized file (6 MB, limit is 5 MB)',
+    description: 'Constructs a 6 MB Blob and posts it as an image. Multer should reject it before writing anything to disk.',
     run: async () => {
       const bigBlob = new Blob([new Uint8Array(6 * 1024 * 1024)], { type: 'image/jpeg' })
       const form = new FormData()
@@ -105,15 +219,65 @@ const LIVE_TESTS = [
       return { status: res.status, data: await res.json() }
     }
   },
+  {
+    label: 'Disallowed file type (.txt uploaded as image)',
+    description: 'Sends a text file with type text/plain. The multer fileFilter checks mimetype against the allowlist [jpeg, png, webp, gif] and should reject it.',
+    run: async () => {
+      const txtBlob = new Blob(['not an image'], { type: 'text/plain' })
+      const form = new FormData()
+      form.append('image', txtBlob, 'exploit.txt')
+      const res = await fetch(`${BASE_URL}/projects/507f1f77bcf86cd799439011/image`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${getToken()}` },
+        body: form
+      })
+      return { status: res.status, data: await res.json() }
+    }
+  },
+
+  // ── SECURITY ───────────────────────────────────────────────────────────────
+  { isSection: true, title: 'Security' },
+  {
+    label: 'NoSQL injection — {"$gt":""} as email on login',
+    description: 'Classic MongoDB injection: sends an operator object as the email field hoping to match any user. The isEmail validator converts it to "[object Object]" which fails the regex — stopped before it reaches the database.',
+    run: async () => {
+      const res = await fetch(`${BASE_URL}/auth/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: { $gt: '' }, password: 'anything' })
+      })
+      return { status: res.status, data: await res.json() }
+    }
+  },
 ]
 
 export default function DevTab() {
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
-      {LIVE_TESTS.map(test => (
-        <LiveTest key={test.label} test={test} />
-      ))}
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+      {LIVE_TESTS.map((item, i) =>
+        item.isSection
+          ? <SectionHeader key={i} title={item.title} />
+          : <LiveTest key={item.label} test={item} />
+      )}
     </div>
+  )
+}
+
+function SectionHeader({ title }) {
+  return (
+    <h3 style={{
+      fontSize: '0.7rem',
+      fontWeight: 700,
+      color: '#555',
+      textTransform: 'uppercase',
+      letterSpacing: '0.12em',
+      marginTop: '1rem',
+      marginBottom: '0.25rem',
+      paddingBottom: '0.4rem',
+      borderBottom: '1px solid #1e1e1e'
+    }}>
+      {title}
+    </h3>
   )
 }
 
@@ -184,4 +348,3 @@ function LiveTest({ test }) {
     </div>
   )
 }
-
