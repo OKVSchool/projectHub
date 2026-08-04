@@ -1,6 +1,12 @@
 const router = require('express').Router()
 const Task = require('../models/Task')
 const requireAuth = require('../middleware/requireAuth')
+const validate = require('../middleware/validate')
+
+const taskRules = {
+  title: { required: true, minLength: 1, maxLength: 200 },
+  notes: { maxLength: 500 },
+}
 
 router.use(requireAuth)
 
@@ -18,7 +24,7 @@ router.get('/', async (req, res) => {
   }
 })
 
-router.post('/', async (req, res) => {
+router.post('/', validate(taskRules), async (req, res) => {
   try {
     const task = await Task.create({ ...req.body, userId: req.user._id })
     res.status(201).json(task)
@@ -37,7 +43,7 @@ router.get('/:id', async (req, res) => {
   }
 })
 
-router.put('/:id', async (req, res) => {
+router.put('/:id', validate(taskRules, { requireAll: false }), async (req, res) => {
   try {
     const task = await Task.findOneAndUpdate(
       { _id: req.params.id, userId: req.user._id },

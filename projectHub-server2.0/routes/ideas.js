@@ -1,6 +1,15 @@
 const router = require('express').Router()
 const Idea = require('../models/Idea')
 const requireAuth = require('../middleware/requireAuth')
+const validate = require('../middleware/validate')
+
+const ideaRules = {
+  title:       { required: true, minLength: 1, maxLength: 100 },
+  description: { maxLength: 500 },
+  category:    { maxLength: 50 },
+  status:      { enum: ['active', 'parked', 'promoted'] },
+  priority:    { enum: ['none', 'low', 'medium', 'high'] },
+}
 
 router.use(requireAuth)
 
@@ -14,7 +23,7 @@ router.get('/', async (req, res) => {
   }
 })
 
-router.post('/', async (req, res) => {
+router.post('/', validate(ideaRules), async (req, res) => {
   try {
     const idea = await Idea.create({ ...req.body, userId: req.user._id })
     res.status(201).json(idea)
@@ -33,7 +42,7 @@ router.get('/:id', async (req, res) => {
   }
 })
 
-router.put('/:id', async (req, res) => {
+router.put('/:id', validate(ideaRules, { requireAll: false }), async (req, res) => {
   try {
     const idea = await Idea.findOneAndUpdate(
       { _id: req.params.id, userId: req.user._id },

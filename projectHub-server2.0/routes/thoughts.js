@@ -1,6 +1,12 @@
 const router = require('express').Router()
 const Thought = require('../models/Thought')
 const requireAuth = require('../middleware/requireAuth')
+const validate = require('../middleware/validate')
+
+const thoughtRules = {
+  title:    { required: true, minLength: 1, maxLength: 200 },
+  category: { maxLength: 50 },
+}
 
 router.use(requireAuth)
 
@@ -14,7 +20,7 @@ router.get('/', async (req, res) => {
   }
 })
 
-router.post('/', async (req, res) => {
+router.post('/', validate(thoughtRules), async (req, res) => {
   try {
     const thought = await Thought.create({ ...req.body, userId: req.user._id })
     res.status(201).json(thought)
@@ -33,7 +39,7 @@ router.get('/:id', async (req, res) => {
   }
 })
 
-router.put('/:id', async (req, res) => {
+router.put('/:id', validate(thoughtRules, { requireAll: false }), async (req, res) => {
   try {
     const thought = await Thought.findOneAndUpdate(
       { _id: req.params.id, userId: req.user._id },

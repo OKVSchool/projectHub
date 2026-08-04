@@ -1,6 +1,7 @@
 const router = require('express').Router()
 const jwt = require('jsonwebtoken')
 const User = require('../models/User')
+const validate = require('../middleware/validate')
 
 const signToken = (userId) =>
   jwt.sign({ userId }, process.env.JWT_SECRET, { expiresIn: '7d' })
@@ -12,7 +13,18 @@ const userPayload = (user) => ({
   role: user.role
 })
 
-router.post('/signup', async (req, res) => {
+const signupRules = {
+  name:     { required: true, minLength: 2, maxLength: 50 },
+  email:    { required: true, isEmail: true },
+  password: { required: true, minLength: 8, maxLength: 128 },
+}
+
+const loginRules = {
+  email:    { required: true, isEmail: true },
+  password: { required: true },
+}
+
+router.post('/signup', validate(signupRules), async (req, res) => {
   try {
     const { email, password, name } = req.body
     const user = await User.create({ email, password, name })
@@ -22,7 +34,7 @@ router.post('/signup', async (req, res) => {
   }
 })
 
-router.post('/login', async (req, res) => {
+router.post('/login', validate(loginRules), async (req, res) => {
   try {
     const { email, password } = req.body
     const user = await User.findOne({ email })

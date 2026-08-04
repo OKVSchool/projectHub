@@ -3,11 +3,20 @@ const multer = require('multer')
 const path = require('path')
 const Project = require('../models/Project')
 const requireAuth = require('../middleware/requireAuth')
+const validate = require('../middleware/validate')
 
 const upload = multer({
   dest: path.join(__dirname, '../uploads'),
   limits: { fileSize: 5 * 1024 * 1024 }
 })
+
+const projectRules = {
+  title:       { required: true, minLength: 1, maxLength: 100 },
+  description: { maxLength: 1000 },
+  framework:   { maxLength: 50 },
+  repoUrl:     { isUrl: true },
+  status:      { enum: ['active', 'completed', 'paused', 'deployed'] },
+}
 
 router.use(requireAuth)
 
@@ -21,7 +30,7 @@ router.get('/', async (req, res) => {
   }
 })
 
-router.post('/', async (req, res) => {
+router.post('/', validate(projectRules), async (req, res) => {
   try {
     const project = await Project.create({ ...req.body, userId: req.user._id })
     res.status(201).json(project)
@@ -43,7 +52,7 @@ router.get('/:id', async (req, res) => {
   }
 })
 
-router.put('/:id', async (req, res) => {
+router.put('/:id', validate(projectRules, { requireAll: false }), async (req, res) => {
   try {
     const project = await Project.findOneAndUpdate(
       { _id: req.params.id, userId: req.user._id },
