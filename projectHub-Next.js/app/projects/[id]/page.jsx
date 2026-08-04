@@ -4,7 +4,6 @@ import { useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { useAuth } from '@/context/AuthContext'
 import { api } from '@/lib/api'
-import TaskList from '@/components/TaskList'
 
 export default function ProjectDetail() {
   const { id } = useParams()
@@ -104,7 +103,6 @@ export default function ProjectDetail() {
         </div>
       )}
 
-      <TaskList parentId={id} parentType="projectId" />
     </div>
   )
 }

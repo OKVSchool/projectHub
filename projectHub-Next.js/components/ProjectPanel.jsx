@@ -4,6 +4,7 @@ import { useState } from 'react'
 import Link from 'next/link'
 import { api } from '@/lib/api'
 import ThoughtPanel from './ThoughtPanel'
+import TaskList from './TaskList'
 
 export default function ProjectPanel({ project, thoughts, onUpdateThoughts }) {
   const [open, setOpen] = useState(false)
@@ -55,6 +56,10 @@ export default function ProjectPanel({ project, thoughts, onUpdateThoughts }) {
           ) : (
             <button onClick={() => setAddingThought(true)} style={{ ...miniBtn, marginTop: '0.75rem' }}>+ Thought</button>
           )}
+
+          <div style={{ marginTop: '1.5rem' }}>
+            <TaskList parentId={project._id} parentType="projectId" />
+          </div>
         </div>
       )}
     </div>
