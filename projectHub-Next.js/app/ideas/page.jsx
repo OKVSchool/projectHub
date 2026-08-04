@@ -26,6 +26,7 @@ export default function ProjectIdeas() {
   const [projects, setProjects] = useState([])
   const [tasks, setTasks] = useState([])
   const [searchQuery, setSearchQuery] = useState('')
+  const [activeId, setActiveId] = useState(null)
 
   useEffect(() => {
     if (!loading && !user) router.push('/login')
@@ -42,6 +43,12 @@ export default function ProjectIdeas() {
   const refreshIdeas = () => api.getIdeas().then(setIdeas)
   const refreshThoughts = () => api.getThoughts().then(setThoughts)
 
+  function handleNavigate({ tab, activeId }) {
+    setSearchQuery('')
+    setTab(tab)
+    setActiveId(activeId)
+  }
+
   if (loading || !user) return <p>Loading…</p>
 
   const searching = searchQuery.trim().length > 0
@@ -53,7 +60,7 @@ export default function ProjectIdeas() {
         <div style={{ position: 'relative', width: 260 }}>
           <input
             value={searchQuery}
-            onChange={e => setSearchQuery(e.target.value)}
+            onChange={e => { setSearchQuery(e.target.value); setActiveId(null) }}
             placeholder="Search everything…"
             style={{
               width: '100%',
@@ -85,6 +92,7 @@ export default function ProjectIdeas() {
           ideas={ideas}
           thoughts={thoughts}
           tasks={tasks}
+          onNavigate={handleNavigate}
         />
       ) : (
         <>
@@ -110,16 +118,16 @@ export default function ProjectIdeas() {
             ))}
           </div>
 
-          {tab === 'thoughts' && <ThoughtsTab thoughts={thoughts} refresh={refreshThoughts} />}
-          {tab === 'ideas' && <IdeasTab ideas={ideas} thoughts={thoughts} refresh={refreshIdeas} refreshThoughts={refreshThoughts} />}
-          {tab === 'projects' && <ProjectsTab projects={projects} thoughts={thoughts} refreshThoughts={refreshThoughts} />}
+          {tab === 'thoughts' && <ThoughtsTab thoughts={thoughts} refresh={refreshThoughts} activeId={activeId} />}
+          {tab === 'ideas' && <IdeasTab ideas={ideas} thoughts={thoughts} refresh={refreshIdeas} refreshThoughts={refreshThoughts} activeId={activeId} />}
+          {tab === 'projects' && <ProjectsTab projects={projects} thoughts={thoughts} refreshThoughts={refreshThoughts} activeId={activeId} />}
         </>
       )}
     </div>
   )
 }
 
-function SearchResults({ query, projects, ideas, thoughts, tasks }) {
+function SearchResults({ query, projects, ideas, thoughts, tasks, onNavigate }) {
   const q = query.toLowerCase()
 
   const match = (...fields) => fields.some(f => typeof f === 'string' && f.toLowerCase().includes(q))
@@ -128,13 +136,13 @@ function SearchResults({ query, projects, ideas, thoughts, tasks }) {
 
   projects.forEach(p => {
     if (match(p.title, p.description, p.framework, p.status, ...(p.tags || []))) {
-      results.push({ type: 'Project', title: p.title, meta: [p.status, p.framework].filter(Boolean), context: null })
+      results.push({ type: 'Project', title: p.title, meta: [p.status, p.framework].filter(Boolean), context: null, navigateTo: { tab: 'projects', activeId: p._id } })
     }
   })
 
   ideas.forEach(idea => {
     if (match(idea.title, idea.description, idea.category, idea.status, idea.priority)) {
-      results.push({ type: 'Idea', title: idea.title, meta: [idea.priority !== 'none' && idea.priority, idea.status].filter(Boolean), context: null })
+      results.push({ type: 'Idea', title: idea.title, meta: [idea.priority !== 'none' && idea.priority, idea.status].filter(Boolean), context: null, navigateTo: { tab: 'ideas', activeId: idea._id } })
     }
   })
 
@@ -145,7 +153,10 @@ function SearchResults({ query, projects, ideas, thoughts, tasks }) {
       const context = parentProject ? `in project: ${parentProject.title}`
         : parentIdea ? `in idea: ${parentIdea.title}`
         : 'standalone'
-      results.push({ type: 'Thought', title: t.title, meta: t.category ? [t.category] : [], context })
+      const navigateTo = parentProject ? { tab: 'projects', activeId: parentProject._id }
+        : parentIdea ? { tab: 'ideas', activeId: parentIdea._id }
+        : { tab: 'thoughts', activeId: t._id }
+      results.push({ type: 'Thought', title: t.title, meta: t.category ? [t.category] : [], context, navigateTo })
     }
   })
 
@@ -153,7 +164,8 @@ function SearchResults({ query, projects, ideas, thoughts, tasks }) {
     if (match(task.title, task.notes)) {
       const parentProject = task.projectId ? projects.find(p => p._id === task.projectId) : null
       const context = parentProject ? `in project: ${parentProject.title}` : null
-      results.push({ type: 'Task', title: task.title, meta: [task.done ? 'done' : 'open'].filter(Boolean), context })
+      const navigateTo = parentProject ? { tab: 'projects', activeId: parentProject._id } : null
+      results.push({ type: 'Task', title: task.title, meta: [task.done ? 'done' : 'open'], context, navigateTo })
     }
   })
 
@@ -164,11 +176,17 @@ function SearchResults({ query, projects, ideas, thoughts, tasks }) {
   return (
     <div>
       <p style={{ color: '#555', fontSize: '0.8rem', marginBottom: '1rem' }}>
-        {results.length} result{results.length !== 1 ? 's' : ''} for &ldquo;{query}&rdquo;
+        {results.length} result{results.length !== 1 ? 's' : ''} for &ldquo;{query}&rdquo; — click to go there
       </p>
       <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
         {results.map((r, i) => (
-          <div key={i} style={{ display: 'flex', alignItems: 'baseline', gap: '0.75rem', background: '#111', border: '1px solid #2a2a2a', borderRadius: 8, padding: '0.75rem 1rem' }}>
+          <div
+            key={i}
+            onClick={() => r.navigateTo && onNavigate(r.navigateTo)}
+            style={{ display: 'flex', alignItems: 'baseline', gap: '0.75rem', background: '#111', border: '1px solid #2a2a2a', borderRadius: 8, padding: '0.75rem 1rem', cursor: r.navigateTo ? 'pointer' : 'default' }}
+            onMouseEnter={e => { if (r.navigateTo) e.currentTarget.style.borderColor = '#444' }}
+            onMouseLeave={e => { if (r.navigateTo) e.currentTarget.style.borderColor = '#2a2a2a' }}
+          >
             <span style={{ fontSize: '0.65rem', fontWeight: 700, color: TYPE_COLORS[r.type], textTransform: 'uppercase', letterSpacing: '0.08em', flexShrink: 0, minWidth: 48 }}>
               {r.type}
             </span>
@@ -209,7 +227,7 @@ function highlight(text, query) {
   )
 }
 
-function ThoughtsTab({ thoughts, refresh }) {
+function ThoughtsTab({ thoughts, refresh, activeId }) {
   const standalone = thoughts.filter(t => !t.ideaId && !t.projectId)
   return (
     <div>
@@ -217,13 +235,13 @@ function ThoughtsTab({ thoughts, refresh }) {
       <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', marginTop: '1.5rem' }}>
         {standalone.length === 0 ? (
           <p style={{ color: '#555' }}>No standalone thoughts yet.</p>
-        ) : standalone.map(t => <ThoughtPanel key={t._id} thought={t} onDelete={refresh} />)}
+        ) : standalone.map(t => <ThoughtPanel key={t._id} thought={t} onDelete={refresh} isActive={activeId === t._id} />)}
       </div>
     </div>
   )
 }
 
-function IdeasTab({ ideas, thoughts, refresh, refreshThoughts }) {
+function IdeasTab({ ideas, thoughts, refresh, refreshThoughts, activeId }) {
   return (
     <div>
       <AddIdeaForm onAdd={refresh} />
@@ -231,20 +249,20 @@ function IdeasTab({ ideas, thoughts, refresh, refreshThoughts }) {
         {ideas.length === 0 ? (
           <p style={{ color: '#555' }}>No ideas yet.</p>
         ) : ideas.map(idea => (
-          <IdeaPanel key={idea._id} idea={idea} thoughts={thoughts.filter(t => t.ideaId === idea._id)} onUpdate={refresh} onUpdateThoughts={refreshThoughts} />
+          <IdeaPanel key={idea._id} idea={idea} thoughts={thoughts.filter(t => t.ideaId === idea._id)} onUpdate={refresh} onUpdateThoughts={refreshThoughts} isActive={activeId === idea._id} />
         ))}
       </div>
     </div>
   )
 }
 
-function ProjectsTab({ projects, thoughts, refreshThoughts }) {
+function ProjectsTab({ projects, thoughts, refreshThoughts, activeId }) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
       {projects.length === 0 ? (
         <p style={{ color: '#555' }}>No projects yet.</p>
       ) : projects.map(p => (
-        <ProjectPanel key={p._id} project={p} thoughts={thoughts.filter(t => t.projectId === p._id)} onUpdateThoughts={refreshThoughts} />
+        <ProjectPanel key={p._id} project={p} thoughts={thoughts.filter(t => t.projectId === p._id)} onUpdateThoughts={refreshThoughts} isActive={activeId === p._id} />
       ))}
     </div>
   )

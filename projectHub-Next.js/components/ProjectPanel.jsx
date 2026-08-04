@@ -1,15 +1,26 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
 import { api } from '@/lib/api'
 import ThoughtPanel from './ThoughtPanel'
 import TaskList from './TaskList'
 
-export default function ProjectPanel({ project, thoughts, onUpdateThoughts }) {
+export default function ProjectPanel({ project, thoughts, onUpdateThoughts, isActive = false }) {
   const [open, setOpen] = useState(false)
+  const [highlighted, setHighlighted] = useState(false)
   const [addingThought, setAddingThought] = useState(false)
   const [newThought, setNewThought] = useState('')
+  const ref = useRef(null)
+
+  useEffect(() => {
+    if (!isActive) return
+    setOpen(true)
+    setHighlighted(true)
+    const clearHighlight = setTimeout(() => setHighlighted(false), 1800)
+    const scroll = setTimeout(() => ref.current?.scrollIntoView({ behavior: 'smooth', block: 'center' }), 50)
+    return () => { clearTimeout(clearHighlight); clearTimeout(scroll) }
+  }, [isActive])
 
   async function addThought(e) {
     e.preventDefault()
@@ -21,7 +32,7 @@ export default function ProjectPanel({ project, thoughts, onUpdateThoughts }) {
   }
 
   return (
-    <div style={{ background: '#1a1a1a', border: '1px solid #2a2a2a', borderRadius: 8 }}>
+    <div ref={ref} style={{ background: '#1a1a1a', border: `1px solid ${highlighted ? '#e07820' : '#2a2a2a'}`, borderRadius: 8, transition: 'border-color 0.4s' }}>
       <div
         style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0.9rem 1rem', cursor: 'pointer' }}
         onClick={() => setOpen(o => !o)}

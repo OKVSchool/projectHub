@@ -1,11 +1,21 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { api } from '@/lib/api'
 
-export default function ThoughtPanel({ thought, onDelete, nested = false }) {
+export default function ThoughtPanel({ thought, onDelete, nested = false, isActive = false }) {
   const [editing, setEditing] = useState(false)
+  const [highlighted, setHighlighted] = useState(false)
   const [title, setTitle] = useState(thought.title)
+  const ref = useRef(null)
+
+  useEffect(() => {
+    if (!isActive) return
+    setHighlighted(true)
+    const clearHighlight = setTimeout(() => setHighlighted(false), 1800)
+    const scroll = setTimeout(() => ref.current?.scrollIntoView({ behavior: 'smooth', block: 'center' }), 50)
+    return () => { clearTimeout(clearHighlight); clearTimeout(scroll) }
+  }, [isActive])
 
   async function saveTitle() {
     await api.updateThought(thought._id, { title })
@@ -18,14 +28,15 @@ export default function ThoughtPanel({ thought, onDelete, nested = false }) {
   }
 
   return (
-    <div style={{
+    <div ref={ref} style={{
       display: 'flex',
       alignItems: 'center',
       gap: '0.75rem',
       background: nested ? '#0f0f0f' : '#1a1a1a',
-      border: `1px solid ${nested ? '#222' : '#2a2a2a'}`,
+      border: `1px solid ${highlighted ? '#e07820' : nested ? '#222' : '#2a2a2a'}`,
       borderRadius: 6,
-      padding: '0.6rem 0.9rem'
+      padding: '0.6rem 0.9rem',
+      transition: 'border-color 0.4s'
     }}>
       <span style={{ color: '#555', fontSize: '0.75rem' }}>💭</span>
 
