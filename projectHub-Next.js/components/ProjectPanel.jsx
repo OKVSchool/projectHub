@@ -25,10 +25,13 @@ export default function ProjectPanel({ project, thoughts }) {
         </Link>
       </div>
 
-      {open && thoughts.length > 0 && (
+      {open && (
         <div style={{ padding: '0 1rem 1rem', borderTop: '1px solid #2a2a2a' }}>
           <div style={{ marginTop: '0.75rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-            {thoughts.map(t => <ThoughtPanel key={t._id} thought={t} onDelete={() => {}} nested />)}
+            {thoughts.length === 0
+              ? <p style={{ color: '#555', fontSize: '0.875rem' }}>No thoughts linked to this project.</p>
+              : thoughts.map(t => <ThoughtPanel key={t._id} thought={t} onDelete={() => {}} nested />)
+            }
           </div>
         </div>
       )}
