@@ -15,7 +15,7 @@ const app = express()
 app.get('/health', (req, res) => res.json({ status: 'ok' }))
 
 app.use(cors({
-  origin: process.env.CLIENT_URL || 'http://localhost:3000',
+  origin: (process.env.CLIENT_URL || 'http://localhost:3000').trim(),
   credentials: true
 }))
 app.use(express.json())
