@@ -45,7 +45,7 @@ const LIVE_TESTS = [
   // ── AUTH ───────────────────────────────────────────────────────────────────
   { isSection: true, title: 'Auth' },
   {
-    label: 'Attack 1 — DELETE /tasks/[id] with no Authorization header',
+    label: 'DELETE /tasks/[id] with no Authorization header',
     description: 'Sends a DELETE with no Authorization header at all. requireAuth checks for the Bearer prefix before jwt.verify() is ever called — the task should not be deleted.',
     run: async () => {
       const res = await fetch(`${BASE_URL}/tasks/64a1f2000000000000000000`, {
@@ -73,7 +73,7 @@ const LIVE_TESTS = [
     }
   },
   {
-    label: 'Attack 2 — Tampered token (real JWT, flipped signature)',
+    label: 'Tampered token (real JWT, flipped signature)',
     description: 'Takes your real JWT and flips one character in the signature segment. The header and payload are untouched — only the signature is wrong.',
     run: async () => {
       const token = getToken()
@@ -162,7 +162,7 @@ const LIVE_TESTS = [
     }
   },
   {
-    label: 'Attack 3 — Oversized title + script tag in description',
+    label: 'Oversized title + script tag in description',
     description: 'Sends a title 150 chars long (max is 100) and a <script> tag in description. Both should be caught by validate middleware.',
     run: async () => {
       const res = await fetch(`${BASE_URL}/projects`, {
@@ -201,7 +201,7 @@ const LIVE_TESTS = [
     }
   },
   {
-    label: "Attack 4 — DELETE another user's project",
+    label: "DELETE another user's project",
     description: "Sends a DELETE for a valid ObjectId that belongs to a different user. The { _id, userId } filter finds no match — the document is untouched and the response is 404, not 403, so existence is not revealed.",
     run: async () => {
       const res = await fetch(`${BASE_URL}/projects/507f1f77bcf86cd799439011`, {
@@ -215,7 +215,7 @@ const LIVE_TESTS = [
   // ── UPLOADS ────────────────────────────────────────────────────────────────
   { isSection: true, title: 'Uploads' },
   {
-    label: 'Attack 5 — Oversized file (6 MB, limit is 5 MB)',
+    label: 'Oversized file (6 MB, limit is 5 MB)',
     description: 'Constructs a 6 MB Blob and posts it as an image. Multer should reject it before writing anything to disk.',
     run: async () => {
       const bigBlob = new Blob([new Uint8Array(6 * 1024 * 1024)], { type: 'image/jpeg' })
