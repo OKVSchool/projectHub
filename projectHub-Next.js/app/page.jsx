@@ -4,9 +4,9 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/context/AuthContext'
 import { api } from '@/lib/api'
-import EndeavorCard from '@/components/EndeavorCard'
+import DeploymentCard from '@/components/DeploymentCard'
 
-export default function EndeavorList() {
+export default function DeploymentList() {
   const { user, loading } = useAuth()
   const router = useRouter()
   const [endeavors, setEndeavors] = useState([])
@@ -47,7 +47,7 @@ export default function EndeavorList() {
       ) : (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '1.5rem' }}>
           {endeavors.map(endeavor => (
-            <EndeavorCard key={endeavor._id} endeavor={endeavor} />
+            <DeploymentCard key={endeavor._id} endeavor={endeavor} />
           ))}
         </div>
       )}
