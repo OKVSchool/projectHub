@@ -17,7 +17,7 @@ const TYPE_COLORS = {
   Mark:     '#22c55e',
 }
 
-export default function LeadsPage() {
+export default function VentureList() {
   const { user, loading } = useAuth()
   const router = useRouter()
   const [tab, setTab] = useState('endeavors')
