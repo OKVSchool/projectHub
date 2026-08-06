@@ -27,6 +27,7 @@ export default function ProjectIdeas() {
   const [tasks, setTasks] = useState([])
   const [searchQuery, setSearchQuery] = useState('')
   const [activeId, setActiveId] = useState(null)
+  const [error, setError] = useState('')
 
   useEffect(() => {
     if (!loading && !user) router.push('/login')
@@ -34,10 +35,19 @@ export default function ProjectIdeas() {
 
   useEffect(() => {
     if (!user) return
-    api.getIdeas().then(setIdeas)
-    api.getThoughts().then(setThoughts)
-    api.getProjects().then(setProjects)
-    api.getTasks().then(setTasks)
+    Promise.all([
+      api.getIdeas(),
+      api.getThoughts(),
+      api.getProjects(),
+      api.getTasks(),
+    ])
+      .then(([ideas, thoughts, projects, tasks]) => {
+        setIdeas(ideas)
+        setThoughts(thoughts)
+        setProjects(projects)
+        setTasks(tasks)
+      })
+      .catch(err => setError(err.message))
   }, [user])
 
   const refreshIdeas = () => api.getIdeas().then(setIdeas)
@@ -55,13 +65,14 @@ export default function ProjectIdeas() {
 
   return (
     <div>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+      <div className="ideas-header">
         <h1 style={{ fontSize: '1.75rem', fontWeight: 700 }}>Ideas & Planning</h1>
-        <div style={{ position: 'relative', width: 260 }}>
+        <div className="search-box">
           <input
             value={searchQuery}
             onChange={e => { setSearchQuery(e.target.value); setActiveId(null) }}
             placeholder="Search everything…"
+            aria-label="Search projects, ideas, thoughts, and tasks"
             style={{
               width: '100%',
               background: '#1a1a1a',
@@ -77,13 +88,20 @@ export default function ProjectIdeas() {
           {searching && (
             <button
               onClick={() => setSearchQuery('')}
-              style={{ position: 'absolute', right: 8, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', color: '#666', cursor: 'pointer', fontSize: '0.85rem', lineHeight: 1, padding: 0 }}
+              aria-label="Clear search"
+              style={{ position: 'absolute', right: 8, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', color: '#888', cursor: 'pointer', fontSize: '0.85rem', lineHeight: 1, padding: 0 }}
             >
               ✕
             </button>
           )}
         </div>
       </div>
+
+      {error && (
+        <p style={{ color: '#f87171', background: '#1a1a1a', border: '1px solid #f871711a', padding: '0.75rem', borderRadius: 6, marginBottom: '1rem' }}>
+          {error}
+        </p>
+      )}
 
       {searching ? (
         <SearchResults
@@ -170,12 +188,12 @@ function SearchResults({ query, projects, ideas, thoughts, tasks, onNavigate }) 
   })
 
   if (results.length === 0) {
-    return <p style={{ color: '#555', marginTop: '2rem' }}>No results for &ldquo;{query}&rdquo;</p>
+    return <p style={{ color: '#888', marginTop: '2rem' }}>No results for &ldquo;{query}&rdquo;</p>
   }
 
   return (
     <div>
-      <p style={{ color: '#555', fontSize: '0.8rem', marginBottom: '1rem' }}>
+      <p style={{ color: '#888', fontSize: '0.8rem', marginBottom: '1rem' }}>
         {results.length} result{results.length !== 1 ? 's' : ''} for &ldquo;{query}&rdquo; — click to go there
       </p>
       <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
@@ -200,7 +218,7 @@ function SearchResults({ query, projects, ideas, thoughts, tasks, onNavigate }) 
                 </span>
               ))}
               {r.context && (
-                <span style={{ fontSize: '0.7rem', color: '#555', fontStyle: 'italic' }}>
+                <span style={{ fontSize: '0.7rem', color: '#888', fontStyle: 'italic' }}>
                   {highlight(r.context, query)}
                 </span>
               )}

@@ -53,8 +53,8 @@ export default function ThoughtPanel({ thought, onDelete, nested = false, isActi
         <span style={{ flex: 1, fontSize: '0.9rem', color: '#ddd' }}>{thought.title}</span>
       )}
 
-      <button onClick={() => setEditing(true)} style={iconBtn}>✏️</button>
-      <button onClick={deleteThought} style={{ ...iconBtn, color: '#ef4444' }}>🗑</button>
+      <button onClick={() => setEditing(true)} aria-label="Edit thought" style={iconBtn}>✏️</button>
+      <button onClick={deleteThought} aria-label="Delete thought" style={{ ...iconBtn, color: '#ef4444' }}>🗑</button>
     </div>
   )
 }

@@ -94,8 +94,8 @@ export default function IdeaPanel({ idea, thoughts, onUpdate, onUpdateThoughts, 
           <option value="medium">medium</option>
           <option value="high">high</option>
         </select>
-        <button onClick={e => { e.stopPropagation(); setEditing(true) }} style={iconBtn}>✏️</button>
-        <button onClick={e => { e.stopPropagation(); deleteIdea() }} style={{ ...iconBtn, color: '#ef4444' }}>🗑</button>
+        <button onClick={e => { e.stopPropagation(); setEditing(true) }} aria-label="Edit idea" style={iconBtn}>✏️</button>
+        <button onClick={e => { e.stopPropagation(); deleteIdea() }} aria-label="Delete idea" style={{ ...iconBtn, color: '#ef4444' }}>🗑</button>
       </div>
 
       {open && (

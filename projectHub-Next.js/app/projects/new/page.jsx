@@ -59,6 +59,7 @@ export default function NewProject() {
           value={form.title}
           onChange={e => setForm(f => ({ ...f, title: e.target.value }))}
           placeholder="Project title *"
+          aria-label="Project title"
           required
           style={inputStyle}
         />
@@ -66,29 +67,34 @@ export default function NewProject() {
           value={form.description}
           onChange={e => setForm(f => ({ ...f, description: e.target.value }))}
           placeholder="Description"
+          aria-label="Project description"
           style={{ ...inputStyle, minHeight: 100, resize: 'vertical' }}
         />
         <input
           value={form.framework}
           onChange={e => setForm(f => ({ ...f, framework: e.target.value }))}
           placeholder="Framework (e.g. React, Next.js, Express)"
+          aria-label="Framework"
           style={inputStyle}
         />
         <input
           value={form.repoUrl}
           onChange={e => setForm(f => ({ ...f, repoUrl: e.target.value }))}
           placeholder="Repo URL"
+          aria-label="Repository URL"
           style={inputStyle}
         />
         <input
           value={form.tags}
           onChange={e => setForm(f => ({ ...f, tags: e.target.value }))}
           placeholder="Tags (comma-separated)"
+          aria-label="Tags, comma separated"
           style={inputStyle}
         />
         <select
           value={form.status}
           onChange={e => setForm(f => ({ ...f, status: e.target.value }))}
+          aria-label="Project status"
           style={inputStyle}
         >
           <option value="active">Active</option>

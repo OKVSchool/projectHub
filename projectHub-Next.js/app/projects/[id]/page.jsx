@@ -60,12 +60,12 @@ export default function ProjectDetail() {
 
       {editing ? (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', marginBottom: '2rem' }}>
-          <input value={form.title || ''} onChange={e => setForm(f => ({ ...f, title: e.target.value }))} style={inputStyle} placeholder="Title" />
-          <textarea value={form.description || ''} onChange={e => setForm(f => ({ ...f, description: e.target.value }))} style={{ ...inputStyle, minHeight: 100, resize: 'vertical' }} placeholder="Description" />
-          <input value={form.framework || ''} onChange={e => setForm(f => ({ ...f, framework: e.target.value }))} style={inputStyle} placeholder="Framework" />
-          <input value={form.repoUrl || ''} onChange={e => setForm(f => ({ ...f, repoUrl: e.target.value }))} style={inputStyle} placeholder="Repo URL" />
-          <input value={form.tags?.join(', ') || ''} onChange={e => setForm(f => ({ ...f, tags: e.target.value.split(',').map(t => t.trim()).filter(Boolean) }))} style={inputStyle} placeholder="Tags (comma-separated)" />
-          <select value={form.status || 'active'} onChange={e => setForm(f => ({ ...f, status: e.target.value }))} style={inputStyle}>
+          <input value={form.title || ''} onChange={e => setForm(f => ({ ...f, title: e.target.value }))} aria-label="Project title" style={inputStyle} placeholder="Title" />
+          <textarea value={form.description || ''} onChange={e => setForm(f => ({ ...f, description: e.target.value }))} aria-label="Project description" style={{ ...inputStyle, minHeight: 100, resize: 'vertical' }} placeholder="Description" />
+          <input value={form.framework || ''} onChange={e => setForm(f => ({ ...f, framework: e.target.value }))} aria-label="Framework" style={inputStyle} placeholder="Framework" />
+          <input value={form.repoUrl || ''} onChange={e => setForm(f => ({ ...f, repoUrl: e.target.value }))} aria-label="Repository URL" style={inputStyle} placeholder="Repo URL" />
+          <input value={form.tags?.join(', ') || ''} onChange={e => setForm(f => ({ ...f, tags: e.target.value.split(',').map(t => t.trim()).filter(Boolean) }))} aria-label="Tags, comma separated" style={inputStyle} placeholder="Tags (comma-separated)" />
+          <select value={form.status || 'active'} onChange={e => setForm(f => ({ ...f, status: e.target.value }))} aria-label="Project status" style={inputStyle}>
             <option value="active">Active</option>
             <option value="completed">Completed</option>
             <option value="paused">Paused</option>

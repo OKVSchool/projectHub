@@ -7,18 +7,11 @@ export default function Nav() {
   const { user, logout } = useAuth()
 
   return (
-    <nav style={{
-      background: '#1a1a1a',
-      borderBottom: '1px solid #2a2a2a',
-      padding: '1rem 2rem',
-      display: 'flex',
-      justifyContent: 'space-between',
-      alignItems: 'center'
-    }}>
+    <nav className="nav-root">
       <Link href="/" style={{ fontSize: '1.25rem', fontWeight: 700, color: '#e07820' }}>
         projectHub
       </Link>
-      <div style={{ display: 'flex', gap: '1.5rem', alignItems: 'center' }}>
+      <div className="nav-links">
         {user ? (
           <>
             <Link href="/">Projects</Link>

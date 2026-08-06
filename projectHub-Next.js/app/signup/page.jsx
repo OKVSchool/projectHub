@@ -39,6 +39,7 @@ export default function Signup() {
         <input
           type="text"
           placeholder="Full name"
+          aria-label="Full name"
           value={form.name}
           onChange={e => setForm(f => ({ ...f, name: e.target.value }))}
           required
@@ -47,6 +48,7 @@ export default function Signup() {
         <input
           type="email"
           placeholder="Email"
+          aria-label="Email address"
           value={form.email}
           onChange={e => setForm(f => ({ ...f, email: e.target.value }))}
           required
@@ -55,6 +57,7 @@ export default function Signup() {
         <input
           type="password"
           placeholder="Password"
+          aria-label="Password"
           value={form.password}
           onChange={e => setForm(f => ({ ...f, password: e.target.value }))}
           required
