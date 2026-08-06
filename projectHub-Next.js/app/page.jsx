@@ -34,7 +34,7 @@ export default function EndeavorList() {
           onClick={() => router.push('/endeavors/new')}
           style={{ background: '#e07820', color: '#fff', border: 'none', padding: '0.5rem 1.25rem', borderRadius: 6, fontWeight: 600 }}
         >
-          + New Endeavor
+          + New Deployment
         </button>
       </div>
 
@@ -42,7 +42,7 @@ export default function EndeavorList() {
 
       {endeavors.length === 0 ? (
         <p style={{ color: '#888', textAlign: 'center', marginTop: '4rem' }}>
-          No endeavors yet. Start your first one!
+          No deployments yet. Start your first one!
         </p>
       ) : (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '1.5rem' }}>

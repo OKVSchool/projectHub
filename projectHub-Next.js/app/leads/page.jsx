@@ -273,13 +273,19 @@ function LeadsTab({ leads, traces, refresh, refreshTraces, activeId }) {
 }
 
 function EndeavorTab({ endeavors, traces, refreshTraces, activeId }) {
+  const router = useRouter()
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-      {endeavors.length === 0 ? (
-        <p style={{ color: '#555' }}>No endeavors yet.</p>
-      ) : endeavors.map(e => (
-        <EndeavorPanel key={e._id} endeavor={e} traces={traces.filter(t => t.projectId === e._id)} onUpdateTraces={refreshTraces} isActive={activeId === e._id} />
-      ))}
+    <div>
+      <button onClick={() => router.push('/endeavors/new')} style={btnStyle}>
+        + New Endeavor
+      </button>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', marginTop: '1.5rem' }}>
+        {endeavors.length === 0 ? (
+          <p style={{ color: '#555' }}>No endeavors yet.</p>
+        ) : endeavors.map(e => (
+          <EndeavorPanel key={e._id} endeavor={e} traces={traces.filter(t => t.projectId === e._id)} onUpdateTraces={refreshTraces} isActive={activeId === e._id} />
+        ))}
+      </div>
     </div>
   )
 }
