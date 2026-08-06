@@ -19,7 +19,7 @@ export default function DeploymentList() {
   useEffect(() => {
     if (!user) return
     api.getEndeavors()
-      .then(setEndeavors)
+      .then(all => setEndeavors(all.filter(e => e.status === 'deployed')))
       .catch(err => setError(err.message))
   }, [user])
 
