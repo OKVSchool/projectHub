@@ -5,6 +5,10 @@ import { useRouter } from 'next/navigation'
 import { useAuth } from '@/context/AuthContext'
 import { api } from '@/lib/api'
 
+function isValidUrl(val) {
+  return /^https?:\/\/.+/.test(val.trim())
+}
+
 export default function NewEndeavor() {
   const { user } = useAuth()
   const router = useRouter()
@@ -16,11 +20,29 @@ export default function NewEndeavor() {
     tags: '',
     status: 'active'
   })
+  const [invalid, setInvalid] = useState({})
   const [error, setError] = useState('')
   const [submitting, setSubmitting] = useState(false)
 
+  function update(field, value) {
+    setForm(f => ({ ...f, [field]: value }))
+    if (!invalid[field]) return
+    const met =
+      field === 'repoUrl' ? isValidUrl(value) : value.trim().length > 0
+    if (met) setInvalid(prev => { const next = { ...prev }; delete next[field]; return next })
+  }
+
   async function handleSubmit(e) {
     e.preventDefault()
+    const errors = {}
+    if (!form.title.trim())       errors.title = true
+    if (!form.description.trim()) errors.description = true
+    if (!form.framework.trim())   errors.framework = true
+    if (!isValidUrl(form.repoUrl)) errors.repoUrl = true
+    if (Object.keys(errors).length > 0) {
+      setInvalid(errors)
+      return
+    }
     setError('')
     setSubmitting(true)
     try {
@@ -38,6 +60,12 @@ export default function NewEndeavor() {
 
   if (!user) return null
 
+  const field = (key) => ({
+    ...inputStyle,
+    border: `1px solid ${invalid[key] ? '#ef4444' : '#2a2a2a'}`,
+    transition: 'border-color 0.2s'
+  })
+
   return (
     <div style={{ maxWidth: 600, margin: '0 auto' }}>
       <button
@@ -54,38 +82,34 @@ export default function NewEndeavor() {
         </p>
       )}
 
-      <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+      <form onSubmit={handleSubmit} noValidate style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
         <input
           value={form.title}
-          onChange={e => setForm(f => ({ ...f, title: e.target.value }))}
+          onChange={e => update('title', e.target.value)}
           placeholder="Endeavor title *"
           aria-label="Endeavor title"
-          required
-          style={inputStyle}
+          style={field('title')}
         />
         <textarea
           value={form.description}
-          onChange={e => setForm(f => ({ ...f, description: e.target.value }))}
+          onChange={e => update('description', e.target.value)}
           placeholder="Description *"
           aria-label="Endeavor description"
-          required
-          style={{ ...inputStyle, minHeight: 100, resize: 'vertical' }}
+          style={{ ...field('description'), minHeight: 100, resize: 'vertical' }}
         />
         <input
           value={form.framework}
-          onChange={e => setForm(f => ({ ...f, framework: e.target.value }))}
+          onChange={e => update('framework', e.target.value)}
           placeholder="Framework *"
           aria-label="Framework"
-          required
-          style={inputStyle}
+          style={field('framework')}
         />
         <input
           value={form.repoUrl}
-          onChange={e => setForm(f => ({ ...f, repoUrl: e.target.value }))}
+          onChange={e => update('repoUrl', e.target.value)}
           placeholder="Repo URL *"
           aria-label="Repository URL"
-          required
-          style={inputStyle}
+          style={field('repoUrl')}
         />
         <input
           value={form.tags}
