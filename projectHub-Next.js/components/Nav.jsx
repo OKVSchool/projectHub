@@ -14,8 +14,9 @@ export default function Nav() {
       <div className="nav-links">
         {user ? (
           <>
-            <Link href="/">Endeavors</Link>
-            <Link href="/leads">Leads</Link>
+            <Link href="/">Deployments</Link>
+            <Link href="/leads">Ventures</Link>
+            <Link href="/settings">Settings</Link>
             <Link href="/dev">Dev</Link>
             <span style={{ color: '#888', fontSize: '0.875rem' }}>{user.name}</span>
             <button
