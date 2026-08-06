@@ -47,10 +47,8 @@
  │  Free M0 cluster (cloud)             │
  │                                      │
  │  Collections:                        │
- │  users  projects  ideas              │
- │  thoughts  tasks                     │
- │  (collection names preserved for     │
- │  live data continuity)               │
+ │  users  endeavors  leads             │
+ │  traces  marks                       │
  └──────────────────────────────────────┘
 ```
 
@@ -78,7 +76,7 @@ name         String  required, trim
 role         String  enum: ['user', 'admin']  default: 'user'
 ```
 
-### Endeavor (collection: projects)
+### Endeavor
 ```
 _id          ObjectId
 userId       ObjectId  ref: User  required
@@ -93,7 +91,7 @@ lanes        [String]
 date         Date
 ```
 
-### Lead (collection: ideas)
+### Lead
 ```
 _id                  ObjectId
 userId               ObjectId  ref: User     required
@@ -105,7 +103,7 @@ priority             String    enum: ['none', 'low', 'medium', 'high']
 promotedToProjectId  ObjectId  ref: Endeavor  default: null
 ```
 
-### Trace (collection: thoughts)
+### Trace
 ```
 _id        ObjectId
 userId     ObjectId  ref: User     required
@@ -116,7 +114,7 @@ ideaId     ObjectId  ref: Lead      default: null
 ```
 A Trace is standalone when both `projectId` and `ideaId` are null. It becomes a nested note by setting one of those references.
 
-### Mark (collection: tasks)
+### Mark
 ```
 _id        ObjectId
 userId     ObjectId  ref: User     required

@@ -12,4 +12,4 @@ const markSchema = new mongoose.Schema({
   thoughtId: { type: mongoose.Schema.Types.ObjectId, ref: 'Trace', default: null }
 }, { timestamps: true })
 
-module.exports = mongoose.model('Mark', markSchema, 'tasks')
+module.exports = mongoose.model('Mark', markSchema)
