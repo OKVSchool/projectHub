@@ -7,7 +7,7 @@ const BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'
 
 function getToken() {
   if (typeof window === 'undefined') return null
-  return localStorage.getItem('ph_token')
+  return localStorage.getItem('vw_token')
 }
 
 const LIVE_TESTS = [
@@ -15,21 +15,21 @@ const LIVE_TESTS = [
   // ── BASIC ──────────────────────────────────────────────────────────────────
   { isSection: true, title: 'Basic' },
   {
-    label: 'Loading — GET /projects (live)',
-    description: 'Fires the real getProjects call. Watch the button enter loading state before the response arrives.',
+    label: 'Loading — GET /endeavors (live)',
+    description: 'Fires the real getEndeavors call. Watch the button enter loading state before the response arrives.',
     run: async () => {
-      const data = await api.getProjects()
+      const data = await api.getEndeavors()
       return { status: 200, data }
     }
   },
   {
-    label: 'Full CRUD lifecycle — project',
-    description: 'Creates a test project, reads it back, updates it, then deletes it. All four operations must succeed and clean up after themselves.',
+    label: 'Full CRUD lifecycle — endeavor',
+    description: 'Creates a test endeavor, reads it back, updates it, then deletes it. All four operations must succeed and clean up after themselves.',
     run: async () => {
-      const created = await api.createProject({ title: '__dev_crud_test__', description: 'Created by Dev tab' })
-      const read    = await api.getProject(created._id)
-      const updated = await api.updateProject(created._id, { title: '__dev_crud_test__ — updated' })
-      const deleted = await api.deleteProject(created._id)
+      const created = await api.createEndeavor({ title: '__dev_crud_test__', description: 'Created by Dev tab' })
+      const read    = await api.getEndeavor(created._id)
+      const updated = await api.updateEndeavor(created._id, { title: '__dev_crud_test__ — updated' })
+      const deleted = await api.deleteEndeavor(created._id)
       return {
         status: 200,
         data: {
@@ -45,20 +45,20 @@ const LIVE_TESTS = [
   // ── AUTH ───────────────────────────────────────────────────────────────────
   { isSection: true, title: 'Auth' },
   {
-    label: 'DELETE /tasks/[id] with no Authorization header',
-    description: 'Sends a DELETE with no Authorization header at all. requireAuth checks for the Bearer prefix before jwt.verify() is ever called — the task should not be deleted.',
+    label: 'DELETE /marks/[id] with no Authorization header',
+    description: 'Sends a DELETE with no Authorization header at all. requireAuth checks for the Bearer prefix before jwt.verify() is ever called — the mark should not be deleted.',
     run: async () => {
-      const res = await fetch(`${BASE_URL}/tasks/64a1f2000000000000000000`, {
+      const res = await fetch(`${BASE_URL}/marks/64a1f2000000000000000000`, {
         method: 'DELETE'
       })
       return { status: res.status, data: await res.json() }
     }
   },
   {
-    label: 'No Authorization header — GET /projects',
+    label: 'No Authorization header — GET /endeavors',
     description: 'Same missing-header check on a different route and method, confirming requireAuth is applied consistently across routes.',
     run: async () => {
-      const res = await fetch(`${BASE_URL}/projects`)
+      const res = await fetch(`${BASE_URL}/endeavors`)
       return { status: res.status, data: await res.json() }
     }
   },
@@ -66,7 +66,7 @@ const LIVE_TESTS = [
     label: '401 — Completely fake token',
     description: 'Sends a fabricated string as the Bearer token. requireAuth calls jwt.verify() which rejects it immediately.',
     run: async () => {
-      const res = await fetch(`${BASE_URL}/projects`, {
+      const res = await fetch(`${BASE_URL}/endeavors`, {
         headers: { Authorization: 'Bearer this-is-not-a-valid-token' }
       })
       return { status: res.status, data: await res.json() }
@@ -82,7 +82,7 @@ const LIVE_TESTS = [
       const sig = parts[2]
       const tamperedSig = sig.slice(0, -1) + (sig.slice(-1) === 'a' ? 'b' : 'a')
       const tampered = [parts[0], parts[1], tamperedSig].join('.')
-      const res = await fetch(`${BASE_URL}/projects`, {
+      const res = await fetch(`${BASE_URL}/endeavors`, {
         headers: { Authorization: `Bearer ${tampered}` }
       })
       return { status: res.status, data: await res.json() }
@@ -126,10 +126,10 @@ const LIVE_TESTS = [
   // ── VALIDATION ─────────────────────────────────────────────────────────────
   { isSection: true, title: 'Validation' },
   {
-    label: '400 — POST /projects with no title (required field missing)',
+    label: '400 — POST /endeavors with no title (required field missing)',
     description: 'Sends an empty body. The validate middleware should reject it before any database write occurs.',
     run: async () => {
-      const res = await fetch(`${BASE_URL}/projects`, {
+      const res = await fetch(`${BASE_URL}/endeavors`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${getToken()}` },
         body: JSON.stringify({})
@@ -141,7 +141,7 @@ const LIVE_TESTS = [
     label: '400 — Invalid enum value',
     description: 'Sends status: "flying" — not in the allowed enum [active, completed, paused, deployed]. Validate middleware should catch it.',
     run: async () => {
-      const res = await fetch(`${BASE_URL}/projects`, {
+      const res = await fetch(`${BASE_URL}/endeavors`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${getToken()}` },
         body: JSON.stringify({ title: 'Enum test', status: 'flying' })
@@ -153,7 +153,7 @@ const LIVE_TESTS = [
     label: '400 — Invalid URL format',
     description: 'Sends repoUrl: "not-a-url" — fails the isUrl rule (must start with http:// or https://).',
     run: async () => {
-      const res = await fetch(`${BASE_URL}/projects`, {
+      const res = await fetch(`${BASE_URL}/endeavors`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${getToken()}` },
         body: JSON.stringify({ title: 'URL test', repoUrl: 'not-a-url' })
@@ -165,7 +165,7 @@ const LIVE_TESTS = [
     label: 'Oversized title + script tag in description',
     description: 'Sends a title 150 chars long (max is 100) and a <script> tag in description. Both should be caught by validate middleware.',
     run: async () => {
-      const res = await fetch(`${BASE_URL}/projects`, {
+      const res = await fetch(`${BASE_URL}/endeavors`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${getToken()}` },
         body: JSON.stringify({ title: 'A'.repeat(150), description: '<script>alert(1)</script>' })
@@ -177,9 +177,9 @@ const LIVE_TESTS = [
     label: '200 — PUT with empty body (partial update allowed)',
     description: 'Sends a PUT with no fields. requireAll: false means nothing is required on updates — this should pass and return the unchanged document.',
     run: async () => {
-      const projects = await api.getProjects()
-      if (!projects.length) return { status: 'SKIP', data: { note: 'No projects to update — create one first' } }
-      const res = await fetch(`${BASE_URL}/projects/${projects[0]._id}`, {
+      const endeavors = await api.getEndeavors()
+      if (!endeavors.length) return { status: 'SKIP', data: { note: 'No endeavors to update — create one first' } }
+      const res = await fetch(`${BASE_URL}/endeavors/${endeavors[0]._id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${getToken()}` },
         body: JSON.stringify({})
@@ -191,20 +191,20 @@ const LIVE_TESTS = [
   // ── OWNERSHIP ──────────────────────────────────────────────────────────────
   { isSection: true, title: 'Ownership' },
   {
-    label: '404 — GET /projects/[nonexistent id]',
+    label: '404 — GET /endeavors/[nonexistent id]',
     description: 'Requests a valid-format ObjectId that does not exist. The ownership-scoped query finds nothing and returns 404.',
     run: async () => {
-      const res = await fetch(`${BASE_URL}/projects/000000000000000000000000`, {
+      const res = await fetch(`${BASE_URL}/endeavors/000000000000000000000000`, {
         headers: { Authorization: `Bearer ${getToken()}` }
       })
       return { status: res.status, data: await res.json() }
     }
   },
   {
-    label: "DELETE another user's project",
+    label: "DELETE another user's endeavor",
     description: "Sends a DELETE for a valid ObjectId that belongs to a different user. Returns 404 — not 403 — because the { _id, userId } ownership filter makes it indistinguishable from a missing record. This is intentional: a 403 would confirm the ID exists, leaking information to an attacker.",
     run: async () => {
-      const res = await fetch(`${BASE_URL}/projects/507f1f77bcf86cd799439011`, {
+      const res = await fetch(`${BASE_URL}/endeavors/507f1f77bcf86cd799439011`, {
         method: 'DELETE',
         headers: { Authorization: `Bearer ${getToken()}` }
       })
@@ -221,7 +221,7 @@ const LIVE_TESTS = [
       const bigBlob = new Blob([new Uint8Array(6 * 1024 * 1024)], { type: 'image/jpeg' })
       const form = new FormData()
       form.append('image', bigBlob, 'oversized.jpg')
-      const res = await fetch(`${BASE_URL}/projects/507f1f77bcf86cd799439011/image`, {
+      const res = await fetch(`${BASE_URL}/endeavors/507f1f77bcf86cd799439011/image`, {
         method: 'POST',
         headers: { Authorization: `Bearer ${getToken()}` },
         body: form
@@ -236,7 +236,7 @@ const LIVE_TESTS = [
       const txtBlob = new Blob(['not an image'], { type: 'text/plain' })
       const form = new FormData()
       form.append('image', txtBlob, 'exploit.txt')
-      const res = await fetch(`${BASE_URL}/projects/507f1f77bcf86cd799439011/image`, {
+      const res = await fetch(`${BASE_URL}/endeavors/507f1f77bcf86cd799439011/image`, {
         method: 'POST',
         headers: { Authorization: `Bearer ${getToken()}` },
         body: form

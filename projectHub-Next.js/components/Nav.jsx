@@ -9,13 +9,13 @@ export default function Nav() {
   return (
     <nav className="nav-root">
       <Link href="/" style={{ fontSize: '1.25rem', fontWeight: 700, color: '#e07820' }}>
-        projectHub
+        velaWright
       </Link>
       <div className="nav-links">
         {user ? (
           <>
-            <Link href="/">Projects</Link>
-            <Link href="/ideas">Ideas</Link>
+            <Link href="/">Endeavors</Link>
+            <Link href="/leads">Leads</Link>
             <Link href="/dev">Dev</Link>
             <span style={{ color: '#888', fontSize: '0.875rem' }}>{user.name}</span>
             <button

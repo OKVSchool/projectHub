@@ -2,7 +2,7 @@ const BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'
 
 function getToken() {
   if (typeof window === 'undefined') return null
-  return localStorage.getItem('ph_token')
+  return localStorage.getItem('vw_token')
 }
 
 async function request(path, options = {}) {
@@ -25,41 +25,41 @@ export const api = {
   signup: (body) => request('/auth/signup', { method: 'POST', body: JSON.stringify(body) }),
   login: (body) => request('/auth/login', { method: 'POST', body: JSON.stringify(body) }),
 
-  // Projects
-  getProjects: () => request('/projects'),
-  getProject: (id) => request(`/projects/${id}`),
-  createProject: (body) => request('/projects', { method: 'POST', body: JSON.stringify(body) }),
-  updateProject: (id, body) => request(`/projects/${id}`, { method: 'PUT', body: JSON.stringify(body) }),
-  deleteProject: (id) => request(`/projects/${id}`, { method: 'DELETE' }),
-  uploadProjectImage: (id, formData) => {
+  // Endeavors
+  getEndeavors: () => request('/endeavors'),
+  getEndeavor: (id) => request(`/endeavors/${id}`),
+  createEndeavor: (body) => request('/endeavors', { method: 'POST', body: JSON.stringify(body) }),
+  updateEndeavor: (id, body) => request(`/endeavors/${id}`, { method: 'PUT', body: JSON.stringify(body) }),
+  deleteEndeavor: (id) => request(`/endeavors/${id}`, { method: 'DELETE' }),
+  uploadEndeavorImage: (id, formData) => {
     const token = getToken()
-    return fetch(`${BASE_URL}/projects/${id}/image`, {
+    return fetch(`${BASE_URL}/endeavors/${id}/image`, {
       method: 'POST',
       headers: token ? { Authorization: `Bearer ${token}` } : {},
       body: formData
     }).then(r => r.json())
   },
 
-  // Ideas
-  getIdeas: () => request('/ideas'),
-  getIdea: (id) => request(`/ideas/${id}`),
-  createIdea: (body) => request('/ideas', { method: 'POST', body: JSON.stringify(body) }),
-  updateIdea: (id, body) => request(`/ideas/${id}`, { method: 'PUT', body: JSON.stringify(body) }),
-  deleteIdea: (id) => request(`/ideas/${id}`, { method: 'DELETE' }),
+  // Leads
+  getLeads: () => request('/leads'),
+  getLead: (id) => request(`/leads/${id}`),
+  createLead: (body) => request('/leads', { method: 'POST', body: JSON.stringify(body) }),
+  updateLead: (id, body) => request(`/leads/${id}`, { method: 'PUT', body: JSON.stringify(body) }),
+  deleteLead: (id) => request(`/leads/${id}`, { method: 'DELETE' }),
 
-  // Thoughts
-  getThoughts: () => request('/thoughts'),
-  getThought: (id) => request(`/thoughts/${id}`),
-  createThought: (body) => request('/thoughts', { method: 'POST', body: JSON.stringify(body) }),
-  updateThought: (id, body) => request(`/thoughts/${id}`, { method: 'PUT', body: JSON.stringify(body) }),
-  deleteThought: (id) => request(`/thoughts/${id}`, { method: 'DELETE' }),
+  // Traces
+  getTraces: () => request('/traces'),
+  getTrace: (id) => request(`/traces/${id}`),
+  createTrace: (body) => request('/traces', { method: 'POST', body: JSON.stringify(body) }),
+  updateTrace: (id, body) => request(`/traces/${id}`, { method: 'PUT', body: JSON.stringify(body) }),
+  deleteTrace: (id) => request(`/traces/${id}`, { method: 'DELETE' }),
 
-  // Tasks
-  getTasks: (query = {}) => {
+  // Marks
+  getMarks: (query = {}) => {
     const params = new URLSearchParams(query).toString()
-    return request(`/tasks${params ? `?${params}` : ''}`)
+    return request(`/marks${params ? `?${params}` : ''}`)
   },
-  createTask: (body) => request('/tasks', { method: 'POST', body: JSON.stringify(body) }),
-  updateTask: (id, body) => request(`/tasks/${id}`, { method: 'PUT', body: JSON.stringify(body) }),
-  deleteTask: (id) => request(`/tasks/${id}`, { method: 'DELETE' })
+  createMark: (body) => request('/marks', { method: 'POST', body: JSON.stringify(body) }),
+  updateMark: (id, body) => request(`/marks/${id}`, { method: 'PUT', body: JSON.stringify(body) }),
+  deleteMark: (id) => request(`/marks/${id}`, { method: 'DELETE' })
 }

@@ -1,4 +1,4 @@
-# projectHub — Security Review
+# velaWright — Security Review
 
 ---
 
@@ -12,13 +12,13 @@ The audit was run line-by-line against the live codebase, not from memory.
 | `.env` gitignored | Confirmed in `.gitignore`; never appears in `git log` |
 | JWT secret in env var with expiry | `process.env.JWT_SECRET`, `expiresIn: '7d'` — confirmed in `routes/auth.js` |
 | Passwords bcrypt-hashed | `pre('save')` hook in `models/User.js` with cost factor 12; plaintext never written |
-| All POST/PUT routes validate input | `validate(rules)` middleware applied to every write route across `auth`, `projects`, `ideas`, `thoughts`, `tasks` |
+| All POST/PUT routes validate input | `validate(rules)` middleware applied to every write route across `auth`, `endeavors`, `leads`, `traces`, `marks` |
 | Auth middleware on every protected route | `router.use(requireAuth)` at the top of every route file except `auth.js` |
 | `requireAuth` calls `jwt.verify()` every request | `jwt.verify(token, process.env.JWT_SECRET)` — then confirms user still exists in DB |
 | CORS locked to specific origin | `origin: process.env.CLIENT_URL` — no wildcard, exact Vercel URL in production |
 | Errors don't leak stack traces | `httpError.js` `clientError()` translates DB errors to clean messages; all 500s return a generic string |
 | No sensitive data logged | `console.log` statements reviewed — none print request bodies, passwords, or tokens |
-| File upload type allowlist | `fileFilter` in `routes/projects.js` rejects anything outside `['image/jpeg', 'image/png', 'image/webp', 'image/gif']` |
+| File upload type allowlist | `fileFilter` in `routes/endeavors.js` rejects anything outside `['image/jpeg', 'image/png', 'image/webp', 'image/gif']` |
 | `npm audit` — no critical vulnerabilities | Server: `0 vulnerabilities`. Client: `3 high` in Next.js dependencies (see Remaining Risk) |
 
 ---
@@ -28,21 +28,21 @@ The audit was run line-by-line against the live codebase, not from memory.
 Five attacks were run against the live deployed API using the `/dev` test suite built into the app.
 
 **Attack 1 — No token**
-`DELETE /tasks/:id` with no `Authorization` header.
+`DELETE /marks/:id` with no `Authorization` header.
 
 **Attack 2 — Tampered token**
-`GET /projects` with `Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.dGFtcGVyZWQ.invalidsignature` — a JWT signed with a different secret.
+`GET /endeavors` with `Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.dGFtcGVyZWQ.invalidsignature` — a JWT signed with a different secret.
 
 **Attack 3 — Another user's data**
-User B attempts `GET /projects/:id`, `PUT /projects/:id`, and `DELETE /projects/:id` where `:id` belongs to User A.
+User B attempts `GET /endeavors/:id`, `PUT /endeavors/:id`, and `DELETE /endeavors/:id` where `:id` belongs to User A.
 
 **Attack 4 — Bad and injection input**
-- `POST /projects` with no `title` field
-- `POST /projects` with `status: "invalid-enum"`
+- `POST /endeavors` with no `title` field
+- `POST /endeavors` with `status: "invalid-enum"`
 - `POST /auth/login` with `{ "email": { "$gt": "" } }` (NoSQL injection attempt)
 
 **Attack 5 — Oversized upload**
-`POST /projects/:id/image` with a file exceeding 5 MB.
+`POST /endeavors/:id/image` with a file exceeding 5 MB.
 
 ---
 
@@ -81,7 +81,7 @@ Added `clientError(err)` to translate known MongoDB errors into safe messages:
 
 Every `catch` block in every route was updated to use this function. Stack traces and database internals no longer reach the browser.
 
-**Fix 2 — File type allowlist (`routes/projects.js`)**
+**Fix 2 — File type allowlist (`routes/endeavors.js`)**
 
 Added a `fileFilter` to the multer configuration:
 ```js

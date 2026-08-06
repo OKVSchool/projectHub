@@ -3,8 +3,8 @@ import { AuthProvider } from '@/context/AuthContext'
 import Nav from '@/components/Nav'
 
 export const metadata = {
-  title: 'projectHub',
-  description: 'Your developer portfolio and project tracker'
+  title: 'velaWright',
+  description: 'Track your endeavors, leads, traces, and marks'
 }
 
 export default function RootLayout({ children }) {

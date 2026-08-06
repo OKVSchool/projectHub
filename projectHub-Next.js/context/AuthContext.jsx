@@ -12,30 +12,30 @@ export function AuthProvider({ children }) {
   const router = useRouter()
 
   useEffect(() => {
-    const stored = localStorage.getItem('ph_user')
+    const stored = localStorage.getItem('vw_user')
     if (stored) setUser(JSON.parse(stored))
     setLoading(false)
   }, [])
 
   async function signup(data) {
     const { token, user } = await api.signup(data)
-    localStorage.setItem('ph_token', token)
-    localStorage.setItem('ph_user', JSON.stringify(user))
+    localStorage.setItem('vw_token', token)
+    localStorage.setItem('vw_user', JSON.stringify(user))
     setUser(user)
     router.push('/')
   }
 
   async function login(data) {
     const { token, user } = await api.login(data)
-    localStorage.setItem('ph_token', token)
-    localStorage.setItem('ph_user', JSON.stringify(user))
+    localStorage.setItem('vw_token', token)
+    localStorage.setItem('vw_user', JSON.stringify(user))
     setUser(user)
     router.push('/')
   }
 
   function logout() {
-    localStorage.removeItem('ph_token')
-    localStorage.removeItem('ph_user')
+    localStorage.removeItem('vw_token')
+    localStorage.removeItem('vw_user')
     setUser(null)
     router.push('/login')
   }

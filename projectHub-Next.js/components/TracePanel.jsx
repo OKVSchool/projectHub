@@ -3,10 +3,10 @@
 import { useState, useEffect, useRef } from 'react'
 import { api } from '@/lib/api'
 
-export default function ThoughtPanel({ thought, onDelete, nested = false, isActive = false }) {
+export default function TracePanel({ trace, onDelete, nested = false, isActive = false }) {
   const [editing, setEditing] = useState(false)
   const [highlighted, setHighlighted] = useState(false)
-  const [title, setTitle] = useState(thought.title)
+  const [title, setTitle] = useState(trace.title)
   const ref = useRef(null)
 
   useEffect(() => {
@@ -18,12 +18,12 @@ export default function ThoughtPanel({ thought, onDelete, nested = false, isActi
   }, [isActive])
 
   async function saveTitle() {
-    await api.updateThought(thought._id, { title })
+    await api.updateTrace(trace._id, { title })
     setEditing(false)
   }
 
-  async function deleteThought() {
-    await api.deleteThought(thought._id)
+  async function deleteTrace() {
+    await api.deleteTrace(trace._id)
     onDelete()
   }
 
@@ -50,11 +50,11 @@ export default function ThoughtPanel({ thought, onDelete, nested = false, isActi
           style={{ flex: 1, background: '#0f0f0f', border: '1px solid #444', color: '#e5e5e5', padding: '0.25rem 0.5rem', borderRadius: 4, fontSize: '0.875rem' }}
         />
       ) : (
-        <span style={{ flex: 1, fontSize: '0.9rem', color: '#ddd' }}>{thought.title}</span>
+        <span style={{ flex: 1, fontSize: '0.9rem', color: '#ddd' }}>{trace.title}</span>
       )}
 
-      <button onClick={() => setEditing(true)} aria-label="Edit thought" style={iconBtn}>✏️</button>
-      <button onClick={deleteThought} aria-label="Delete thought" style={{ ...iconBtn, color: '#ef4444' }}>🗑</button>
+      <button onClick={() => setEditing(true)} aria-label="Edit trace" style={iconBtn}>✏️</button>
+      <button onClick={deleteTrace} aria-label="Delete trace" style={{ ...iconBtn, color: '#ef4444' }}>🗑</button>
     </div>
   )
 }

@@ -1,4 +1,4 @@
-# projectHub — Architecture Document
+# velaWright — Architecture Document
 
 ---
 
@@ -10,10 +10,10 @@
  │  Next.js 15 App Router               │
  │  Deployed: Vercel                    │
  │                                      │
- │  /              Projects list        │
- │  /projects/new  Create project       │
- │  /projects/:id  Project detail       │
- │  /ideas         Ideas & Planning     │
+ │  /              Endeavors list        │
+ │  /endeavors/new  Create endeavor     │
+ │  /endeavors/:id  Endeavor detail     │
+ │  /leads         Leads & Planning     │
  │  /dev           API test suite       │
  │  /login  /signup  (public)           │
  │                                      │
@@ -33,10 +33,10 @@
  │                                      │
  │  /health         (before CORS)       │
  │  /auth           signup, login       │
- │  /projects       full CRUD + upload  │
- │  /ideas          full CRUD           │
- │  /thoughts       full CRUD           │
- │  /tasks          full CRUD           │
+ │  /endeavors      full CRUD + upload  │
+ │  /leads          full CRUD           │
+ │  /traces         full CRUD           │
+ │  /marks          full CRUD           │
  │  /admin/users    admin only          │
  └──────────────┬───────────────────────┘
                 │ Mongoose ODM
@@ -49,6 +49,8 @@
  │  Collections:                        │
  │  users  projects  ideas              │
  │  thoughts  tasks                     │
+ │  (collection names preserved for     │
+ │  live data continuity)               │
  └──────────────────────────────────────┘
 ```
 
@@ -76,7 +78,7 @@ name         String  required, trim
 role         String  enum: ['user', 'admin']  default: 'user'
 ```
 
-### Project
+### Endeavor (collection: projects)
 ```
 _id          ObjectId
 userId       ObjectId  ref: User  required
@@ -91,30 +93,30 @@ lanes        [String]
 date         Date
 ```
 
-### Idea
+### Lead (collection: ideas)
 ```
 _id                  ObjectId
-userId               ObjectId  ref: User  required
+userId               ObjectId  ref: User     required
 title                String    required, trim
 description          String    default: ''
 category             String
 status               String    enum: ['active', 'parked', 'promoted']
 priority             String    enum: ['none', 'low', 'medium', 'high']
-promotedToProjectId  ObjectId  ref: Project  default: null
+promotedToProjectId  ObjectId  ref: Endeavor  default: null
 ```
 
-### Thought
+### Trace (collection: thoughts)
 ```
 _id        ObjectId
 userId     ObjectId  ref: User     required
 title      String    required, trim
 category   String
-projectId  ObjectId  ref: Project  default: null
-ideaId     ObjectId  ref: Idea     default: null
+projectId  ObjectId  ref: Endeavor  default: null
+ideaId     ObjectId  ref: Lead      default: null
 ```
-A Thought is standalone when both `projectId` and `ideaId` are null. It becomes a nested note by setting one of those references.
+A Trace is standalone when both `projectId` and `ideaId` are null. It becomes a nested note by setting one of those references.
 
-### Task
+### Mark (collection: tasks)
 ```
 _id        ObjectId
 userId     ObjectId  ref: User     required
@@ -123,11 +125,11 @@ notes      String    default: ''
 done       Boolean   default: false
 dueBy      Date      default: null
 category   String
-projectId  ObjectId  ref: Project  default: null
-ideaId     ObjectId  ref: Idea     default: null
-thoughtId  ObjectId  ref: Thought  default: null
+projectId  ObjectId  ref: Endeavor  default: null
+ideaId     ObjectId  ref: Lead      default: null
+thoughtId  ObjectId  ref: Trace     default: null
 ```
-Tasks support the same polymorphic parent pattern as Thoughts, and can also be filtered by query string on `GET /tasks?projectId=...`.
+Marks support the same polymorphic parent pattern as Traces, and can also be filtered by query string on `GET /marks?projectId=...`.
 
 ---
 
@@ -151,44 +153,44 @@ Auth failures return `401`. Ownership mismatches return `404` (resource not foun
 
 Signup rules: name 2–50 chars, email valid format, password 8–128 chars.
 
-### Projects
-| Method | Path                  | Auth    | Body / Notes                                      | Response         |
-|--------|-----------------------|---------|---------------------------------------------------|------------------|
-| GET    | /projects             | user    | —                                                 | `200 [Project]`  |
-| POST   | /projects             | user    | `{ title* , description, framework, repoUrl, tags, status }` | `201 Project`    |
-| GET    | /projects/:id         | user    | —                                                 | `200 Project`    |
-| PUT    | /projects/:id         | user    | any subset of POST body                           | `200 Project`    |
-| DELETE | /projects/:id         | user    | —                                                 | `200 { message }` |
-| POST   | /projects/:id/image   | user    | `multipart/form-data` field `image` (JPEG/PNG/WebP/GIF, max 5 MB) | `200 Project` |
+### Endeavors
+| Method | Path                    | Auth    | Body / Notes                                                          | Response           |
+|--------|-------------------------|---------|-----------------------------------------------------------------------|--------------------|
+| GET    | /endeavors              | user    | —                                                                     | `200 [Endeavor]`   |
+| POST   | /endeavors              | user    | `{ title*, description, framework, repoUrl, tags, status }`           | `201 Endeavor`     |
+| GET    | /endeavors/:id          | user    | —                                                                     | `200 Endeavor`     |
+| PUT    | /endeavors/:id          | user    | any subset of POST body                                               | `200 Endeavor`     |
+| DELETE | /endeavors/:id          | user    | —                                                                     | `200 { message }`  |
+| POST   | /endeavors/:id/image    | user    | `multipart/form-data` field `image` (JPEG/PNG/WebP/GIF, max 5 MB)    | `200 Endeavor`     |
 
-Admin users bypass the `userId` filter on GET and GET/:id (they see all projects).
+Admin users bypass the `userId` filter on GET and GET/:id (they see all endeavors).
 
-### Ideas
-| Method | Path        | Auth | Body                                               | Response        |
-|--------|-------------|------|----------------------------------------------------|-----------------|
-| GET    | /ideas      | user | —                                                  | `200 [Idea]`    |
-| POST   | /ideas      | user | `{ title*, description, category, status, priority }` | `201 Idea`   |
-| GET    | /ideas/:id  | user | —                                                  | `200 Idea`      |
-| PUT    | /ideas/:id  | user | any subset of POST body                            | `200 Idea`      |
-| DELETE | /ideas/:id  | user | —                                                  | `200 { message }` |
+### Leads
+| Method | Path         | Auth | Body                                                  | Response        |
+|--------|--------------|------|-------------------------------------------------------|-----------------|
+| GET    | /leads       | user | —                                                     | `200 [Lead]`    |
+| POST   | /leads       | user | `{ title*, description, category, status, priority }` | `201 Lead`      |
+| GET    | /leads/:id   | user | —                                                     | `200 Lead`      |
+| PUT    | /leads/:id   | user | any subset of POST body                               | `200 Lead`      |
+| DELETE | /leads/:id   | user | —                                                     | `200 { message }` |
 
-### Thoughts
-| Method | Path           | Auth | Body                                    | Response           |
-|--------|----------------|------|-----------------------------------------|--------------------|
-| GET    | /thoughts      | user | query: `?projectId=` or `?ideaId=`      | `200 [Thought]`    |
-| POST   | /thoughts      | user | `{ title*, category, projectId, ideaId }` | `201 Thought`    |
-| GET    | /thoughts/:id  | user | —                                       | `200 Thought`      |
-| PUT    | /thoughts/:id  | user | any subset of POST body                 | `200 Thought`      |
-| DELETE | /thoughts/:id  | user | —                                       | `200 { message }`  |
+### Traces
+| Method | Path           | Auth | Body                                          | Response          |
+|--------|----------------|------|-----------------------------------------------|-------------------|
+| GET    | /traces        | user | query: `?projectId=` or `?ideaId=`            | `200 [Trace]`     |
+| POST   | /traces        | user | `{ title*, category, projectId, ideaId }`     | `201 Trace`       |
+| GET    | /traces/:id    | user | —                                             | `200 Trace`       |
+| PUT    | /traces/:id    | user | any subset of POST body                       | `200 Trace`       |
+| DELETE | /traces/:id    | user | —                                             | `200 { message }` |
 
-### Tasks
-| Method | Path        | Auth | Body                                              | Response        |
-|--------|-------------|------|---------------------------------------------------|-----------------|
-| GET    | /tasks      | user | query: `?projectId=` `?ideaId=` `?thoughtId=`     | `200 [Task]`    |
-| POST   | /tasks      | user | `{ title*, notes, done, dueBy, projectId, ideaId }` | `201 Task`    |
-| GET    | /tasks/:id  | user | —                                                 | `200 Task`      |
-| PUT    | /tasks/:id  | user | any subset of POST body                           | `200 Task`      |
-| DELETE | /tasks/:id  | user | —                                                 | `200 { message }` |
+### Marks
+| Method | Path        | Auth | Body                                                      | Response        |
+|--------|-------------|------|-----------------------------------------------------------|-----------------|
+| GET    | /marks      | user | query: `?projectId=` `?ideaId=` `?thoughtId=`             | `200 [Mark]`    |
+| POST   | /marks      | user | `{ title*, notes, done, dueBy, projectId, ideaId }`       | `201 Mark`      |
+| GET    | /marks/:id  | user | —                                                         | `200 Mark`      |
+| PUT    | /marks/:id  | user | any subset of POST body                                   | `200 Mark`      |
+| DELETE | /marks/:id  | user | —                                                         | `200 { message }` |
 
 ### Admin
 | Method | Path          | Auth  | Response                                |
@@ -218,7 +220,7 @@ Every write query includes `{ userId: req.user._id }` in the filter — not in a
 A single middleware function accepts a rules object and applies `required`, `minLength`, `maxLength`, `isEmail`, `isUrl`, and `enum` checks. The `requireAll: false` option lets PUT routes skip `required` checks so partial updates work without client sending unchanged fields. All validation errors are collected and joined into a single response string, so the frontend receives all problems at once rather than one at a time.
 
 ### Custom `httpError` — no stack traces to clients
-All 500 handlers return `{ error: 'Something went wrong' }`. The `clientError` function translates known MongoDB errors (duplicate key → "email is already in use", ValidationError → field messages) into clean 400 responses without leaking database internals, collection names, or stack traces. This is the difference between `MongoServerError: E11000 duplicate key error collection: projecthub.users index: email_1` reaching the browser versus `email is already in use`.
+All 500 handlers return `{ error: 'Something went wrong' }`. The `clientError` function translates known MongoDB errors (duplicate key → "email is already in use", ValidationError → field messages) into clean 400 responses without leaking database internals, collection names, or stack traces. This is the difference between `MongoServerError: E11000 duplicate key error collection: velawrightdb.users index: email_1` reaching the browser versus `email is already in use`.
 
 ### `app.js` / `server.js` split for testability
 The Express app is fully configured in `app.js` (middleware, routes, no DB connection, no `listen`). `server.js` imports it and adds `mongoose.connect(...).then(app.listen)`. The test suite imports `app.js` directly and connects to an isolated `MongoMemoryServer` instance — no Atlas connection required, no test data polluting production. This separation is what makes `npm test` repeatable and fast.

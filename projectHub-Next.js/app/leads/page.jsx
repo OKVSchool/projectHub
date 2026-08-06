@@ -4,27 +4,27 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/context/AuthContext'
 import { api } from '@/lib/api'
-import IdeaPanel from '@/components/IdeaPanel'
-import ThoughtPanel from '@/components/ThoughtPanel'
-import ProjectPanel from '@/components/ProjectPanel'
+import LeadPanel from '@/components/LeadPanel'
+import TracePanel from '@/components/TracePanel'
+import EndeavorPanel from '@/components/EndeavorPanel'
 
-const TABS = ['thoughts', 'ideas', 'projects']
+const TABS = ['traces', 'leads', 'endeavors']
 
 const TYPE_COLORS = {
-  Project: '#3b82f6',
-  Idea:    '#e07820',
-  Thought: '#a78bfa',
-  Task:    '#22c55e',
+  Endeavor: '#3b82f6',
+  Lead:     '#e07820',
+  Trace:    '#a78bfa',
+  Mark:     '#22c55e',
 }
 
-export default function ProjectIdeas() {
+export default function LeadsPage() {
   const { user, loading } = useAuth()
   const router = useRouter()
-  const [tab, setTab] = useState('projects')
-  const [ideas, setIdeas] = useState([])
-  const [thoughts, setThoughts] = useState([])
-  const [projects, setProjects] = useState([])
-  const [tasks, setTasks] = useState([])
+  const [tab, setTab] = useState('endeavors')
+  const [leads, setLeads] = useState([])
+  const [traces, setTraces] = useState([])
+  const [endeavors, setEndeavors] = useState([])
+  const [marks, setMarks] = useState([])
   const [searchQuery, setSearchQuery] = useState('')
   const [activeId, setActiveId] = useState(null)
   const [error, setError] = useState('')
@@ -36,22 +36,22 @@ export default function ProjectIdeas() {
   useEffect(() => {
     if (!user) return
     Promise.all([
-      api.getIdeas(),
-      api.getThoughts(),
-      api.getProjects(),
-      api.getTasks(),
+      api.getLeads(),
+      api.getTraces(),
+      api.getEndeavors(),
+      api.getMarks(),
     ])
-      .then(([ideas, thoughts, projects, tasks]) => {
-        setIdeas(ideas)
-        setThoughts(thoughts)
-        setProjects(projects)
-        setTasks(tasks)
+      .then(([leads, traces, endeavors, marks]) => {
+        setLeads(leads)
+        setTraces(traces)
+        setEndeavors(endeavors)
+        setMarks(marks)
       })
       .catch(err => setError(err.message))
   }, [user])
 
-  const refreshIdeas = () => api.getIdeas().then(setIdeas)
-  const refreshThoughts = () => api.getThoughts().then(setThoughts)
+  const refreshLeads = () => api.getLeads().then(setLeads)
+  const refreshTraces = () => api.getTraces().then(setTraces)
 
   function handleNavigate({ tab, activeId }) {
     setSearchQuery('')
@@ -66,13 +66,13 @@ export default function ProjectIdeas() {
   return (
     <div>
       <div className="ideas-header">
-        <h1 style={{ fontSize: '1.75rem', fontWeight: 700 }}>Ideas & Planning</h1>
+        <h1 style={{ fontSize: '1.75rem', fontWeight: 700 }}>Leads & Planning</h1>
         <div className="search-box">
           <input
             value={searchQuery}
             onChange={e => { setSearchQuery(e.target.value); setActiveId(null) }}
             placeholder="Search everything…"
-            aria-label="Search projects, ideas, thoughts, and tasks"
+            aria-label="Search endeavors, leads, traces, and marks"
             style={{
               width: '100%',
               background: '#1a1a1a',
@@ -106,10 +106,10 @@ export default function ProjectIdeas() {
       {searching ? (
         <SearchResults
           query={searchQuery.trim()}
-          projects={projects}
-          ideas={ideas}
-          thoughts={thoughts}
-          tasks={tasks}
+          endeavors={endeavors}
+          leads={leads}
+          traces={traces}
+          marks={marks}
           onNavigate={handleNavigate}
         />
       ) : (
@@ -136,54 +136,52 @@ export default function ProjectIdeas() {
             ))}
           </div>
 
-          {tab === 'thoughts' && <ThoughtsTab thoughts={thoughts} refresh={refreshThoughts} activeId={activeId} />}
-          {tab === 'ideas' && <IdeasTab ideas={ideas} thoughts={thoughts} refresh={refreshIdeas} refreshThoughts={refreshThoughts} activeId={activeId} />}
-          {tab === 'projects' && <ProjectsTab projects={projects} thoughts={thoughts} refreshThoughts={refreshThoughts} activeId={activeId} />}
+          {tab === 'traces' && <TracesTab traces={traces} refresh={refreshTraces} activeId={activeId} />}
+          {tab === 'leads' && <LeadsTab leads={leads} traces={traces} refresh={refreshLeads} refreshTraces={refreshTraces} activeId={activeId} />}
+          {tab === 'endeavors' && <EndeavorTab endeavors={endeavors} traces={traces} refreshTraces={refreshTraces} activeId={activeId} />}
         </>
       )}
     </div>
   )
 }
 
-function SearchResults({ query, projects, ideas, thoughts, tasks, onNavigate }) {
+function SearchResults({ query, endeavors, leads, traces, marks, onNavigate }) {
   const q = query.toLowerCase()
-
   const match = (...fields) => fields.some(f => typeof f === 'string' && f.toLowerCase().includes(q))
-
   const results = []
 
-  projects.forEach(p => {
-    if (match(p.title, p.description, p.framework, p.status, ...(p.tags || []))) {
-      results.push({ type: 'Project', title: p.title, meta: [p.status, p.framework].filter(Boolean), context: null, navigateTo: { tab: 'projects', activeId: p._id } })
+  endeavors.forEach(e => {
+    if (match(e.title, e.description, e.framework, e.status, ...(e.tags || []))) {
+      results.push({ type: 'Endeavor', title: e.title, meta: [e.status, e.framework].filter(Boolean), context: null, navigateTo: { tab: 'endeavors', activeId: e._id } })
     }
   })
 
-  ideas.forEach(idea => {
-    if (match(idea.title, idea.description, idea.category, idea.status, idea.priority)) {
-      results.push({ type: 'Idea', title: idea.title, meta: [idea.priority !== 'none' && idea.priority, idea.status].filter(Boolean), context: null, navigateTo: { tab: 'ideas', activeId: idea._id } })
+  leads.forEach(lead => {
+    if (match(lead.title, lead.description, lead.category, lead.status, lead.priority)) {
+      results.push({ type: 'Lead', title: lead.title, meta: [lead.priority !== 'none' && lead.priority, lead.status].filter(Boolean), context: null, navigateTo: { tab: 'leads', activeId: lead._id } })
     }
   })
 
-  thoughts.forEach(t => {
+  traces.forEach(t => {
     if (match(t.title, t.category)) {
-      const parentProject = t.projectId ? projects.find(p => p._id === t.projectId) : null
-      const parentIdea    = t.ideaId    ? ideas.find(i => i._id === t.ideaId)       : null
-      const context = parentProject ? `in project: ${parentProject.title}`
-        : parentIdea ? `in idea: ${parentIdea.title}`
+      const parentEndeavor = t.projectId ? endeavors.find(e => e._id === t.projectId) : null
+      const parentLead     = t.ideaId    ? leads.find(l => l._id === t.ideaId)        : null
+      const context = parentEndeavor ? `in endeavor: ${parentEndeavor.title}`
+        : parentLead ? `in lead: ${parentLead.title}`
         : 'standalone'
-      const navigateTo = parentProject ? { tab: 'projects', activeId: parentProject._id }
-        : parentIdea ? { tab: 'ideas', activeId: parentIdea._id }
-        : { tab: 'thoughts', activeId: t._id }
-      results.push({ type: 'Thought', title: t.title, meta: t.category ? [t.category] : [], context, navigateTo })
+      const navigateTo = parentEndeavor ? { tab: 'endeavors', activeId: parentEndeavor._id }
+        : parentLead ? { tab: 'leads', activeId: parentLead._id }
+        : { tab: 'traces', activeId: t._id }
+      results.push({ type: 'Trace', title: t.title, meta: t.category ? [t.category] : [], context, navigateTo })
     }
   })
 
-  tasks.forEach(task => {
-    if (match(task.title, task.notes)) {
-      const parentProject = task.projectId ? projects.find(p => p._id === task.projectId) : null
-      const context = parentProject ? `in project: ${parentProject.title}` : null
-      const navigateTo = parentProject ? { tab: 'projects', activeId: parentProject._id } : null
-      results.push({ type: 'Task', title: task.title, meta: [task.done ? 'done' : 'open'], context, navigateTo })
+  marks.forEach(mark => {
+    if (match(mark.title, mark.notes)) {
+      const parentEndeavor = mark.projectId ? endeavors.find(e => e._id === mark.projectId) : null
+      const context = parentEndeavor ? `in endeavor: ${parentEndeavor.title}` : null
+      const navigateTo = parentEndeavor ? { tab: 'endeavors', activeId: parentEndeavor._id } : null
+      results.push({ type: 'Mark', title: mark.title, meta: [mark.done ? 'done' : 'open'], context, navigateTo })
     }
   })
 
@@ -205,7 +203,7 @@ function SearchResults({ query, projects, ideas, thoughts, tasks, onNavigate }) 
             onMouseEnter={e => { if (r.navigateTo) e.currentTarget.style.borderColor = '#444' }}
             onMouseLeave={e => { if (r.navigateTo) e.currentTarget.style.borderColor = '#2a2a2a' }}
           >
-            <span style={{ fontSize: '0.65rem', fontWeight: 700, color: TYPE_COLORS[r.type], textTransform: 'uppercase', letterSpacing: '0.08em', flexShrink: 0, minWidth: 48 }}>
+            <span style={{ fontSize: '0.65rem', fontWeight: 700, color: TYPE_COLORS[r.type], textTransform: 'uppercase', letterSpacing: '0.08em', flexShrink: 0, minWidth: 54 }}>
               {r.type}
             </span>
             <span style={{ flex: 1, fontSize: '0.9rem', color: '#e5e5e5' }}>
@@ -245,55 +243,55 @@ function highlight(text, query) {
   )
 }
 
-function ThoughtsTab({ thoughts, refresh, activeId }) {
-  const standalone = thoughts.filter(t => !t.ideaId && !t.projectId)
+function TracesTab({ traces, refresh, activeId }) {
+  const standalone = traces.filter(t => !t.ideaId && !t.projectId)
   return (
     <div>
-      <AddThoughtForm onAdd={refresh} />
+      <AddTraceForm onAdd={refresh} />
       <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', marginTop: '1.5rem' }}>
         {standalone.length === 0 ? (
-          <p style={{ color: '#555' }}>No standalone thoughts yet.</p>
-        ) : standalone.map(t => <ThoughtPanel key={t._id} thought={t} onDelete={refresh} isActive={activeId === t._id} />)}
+          <p style={{ color: '#555' }}>No standalone traces yet.</p>
+        ) : standalone.map(t => <TracePanel key={t._id} trace={t} onDelete={refresh} isActive={activeId === t._id} />)}
       </div>
     </div>
   )
 }
 
-function IdeasTab({ ideas, thoughts, refresh, refreshThoughts, activeId }) {
+function LeadsTab({ leads, traces, refresh, refreshTraces, activeId }) {
   return (
     <div>
-      <AddIdeaForm onAdd={refresh} />
+      <AddLeadForm onAdd={refresh} />
       <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', marginTop: '1.5rem' }}>
-        {ideas.length === 0 ? (
-          <p style={{ color: '#555' }}>No ideas yet.</p>
-        ) : ideas.map(idea => (
-          <IdeaPanel key={idea._id} idea={idea} thoughts={thoughts.filter(t => t.ideaId === idea._id)} onUpdate={refresh} onUpdateThoughts={refreshThoughts} isActive={activeId === idea._id} />
+        {leads.length === 0 ? (
+          <p style={{ color: '#555' }}>No leads yet.</p>
+        ) : leads.map(lead => (
+          <LeadPanel key={lead._id} lead={lead} traces={traces.filter(t => t.ideaId === lead._id)} onUpdate={refresh} onUpdateTraces={refreshTraces} isActive={activeId === lead._id} />
         ))}
       </div>
     </div>
   )
 }
 
-function ProjectsTab({ projects, thoughts, refreshThoughts, activeId }) {
+function EndeavorTab({ endeavors, traces, refreshTraces, activeId }) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-      {projects.length === 0 ? (
-        <p style={{ color: '#555' }}>No projects yet.</p>
-      ) : projects.map(p => (
-        <ProjectPanel key={p._id} project={p} thoughts={thoughts.filter(t => t.projectId === p._id)} onUpdateThoughts={refreshThoughts} isActive={activeId === p._id} />
+      {endeavors.length === 0 ? (
+        <p style={{ color: '#555' }}>No endeavors yet.</p>
+      ) : endeavors.map(e => (
+        <EndeavorPanel key={e._id} endeavor={e} traces={traces.filter(t => t.projectId === e._id)} onUpdateTraces={refreshTraces} isActive={activeId === e._id} />
       ))}
     </div>
   )
 }
 
-function AddThoughtForm({ onAdd }) {
+function AddTraceForm({ onAdd }) {
   const [title, setTitle] = useState('')
   const [open, setOpen] = useState(false)
 
   async function submit(e) {
     e.preventDefault()
     if (!title.trim()) return
-    await api.createThought({ title })
+    await api.createTrace({ title })
     setTitle('')
     setOpen(false)
     onAdd()
@@ -301,23 +299,23 @@ function AddThoughtForm({ onAdd }) {
 
   return open ? (
     <form onSubmit={submit} style={{ display: 'flex', gap: '0.5rem' }}>
-      <input autoFocus value={title} onChange={e => setTitle(e.target.value)} placeholder="New thought…" style={inputStyle} />
+      <input autoFocus value={title} onChange={e => setTitle(e.target.value)} placeholder="New trace…" style={inputStyle} />
       <button type="submit" style={btnStyle}>Add</button>
       <button type="button" onClick={() => setOpen(false)} style={{ ...btnStyle, background: '#2a2a2a' }}>Cancel</button>
     </form>
   ) : (
-    <button onClick={() => setOpen(true)} style={btnStyle}>+ New Thought</button>
+    <button onClick={() => setOpen(true)} style={btnStyle}>+ New Trace</button>
   )
 }
 
-function AddIdeaForm({ onAdd }) {
+function AddLeadForm({ onAdd }) {
   const [title, setTitle] = useState('')
   const [open, setOpen] = useState(false)
 
   async function submit(e) {
     e.preventDefault()
     if (!title.trim()) return
-    await api.createIdea({ title })
+    await api.createLead({ title })
     setTitle('')
     setOpen(false)
     onAdd()
@@ -325,12 +323,12 @@ function AddIdeaForm({ onAdd }) {
 
   return open ? (
     <form onSubmit={submit} style={{ display: 'flex', gap: '0.5rem' }}>
-      <input autoFocus value={title} onChange={e => setTitle(e.target.value)} placeholder="New idea…" style={inputStyle} />
+      <input autoFocus value={title} onChange={e => setTitle(e.target.value)} placeholder="New lead…" style={inputStyle} />
       <button type="submit" style={btnStyle}>Add</button>
       <button type="button" onClick={() => setOpen(false)} style={{ ...btnStyle, background: '#2a2a2a' }}>Cancel</button>
     </form>
   ) : (
-    <button onClick={() => setOpen(true)} style={btnStyle}>+ New Idea</button>
+    <button onClick={() => setOpen(true)} style={btnStyle}>+ New Lead</button>
   )
 }
 

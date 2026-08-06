@@ -1,10 +1,10 @@
 const router = require('express').Router()
-const Task = require('../models/Task')
+const Mark = require('../models/Mark')
 const requireAuth = require('../middleware/requireAuth')
 const validate = require('../middleware/validate')
 const { clientError } = require('../middleware/httpError')
 
-const taskRules = {
+const markRules = {
   title: { required: true, minLength: 1, maxLength: 200 },
   notes: { maxLength: 500 },
 }
@@ -18,17 +18,17 @@ router.get('/', async (req, res) => {
     if (projectId) filter.projectId = projectId
     if (ideaId) filter.ideaId = ideaId
     if (thoughtId) filter.thoughtId = thoughtId
-    const tasks = await Task.find(filter).sort({ createdAt: -1 })
-    res.json(tasks)
+    const marks = await Mark.find(filter).sort({ createdAt: -1 })
+    res.json(marks)
   } catch {
     res.status(500).json({ error: 'Something went wrong' })
   }
 })
 
-router.post('/', validate(taskRules), async (req, res) => {
+router.post('/', validate(markRules), async (req, res) => {
   try {
-    const task = await Task.create({ ...req.body, userId: req.user._id })
-    res.status(201).json(task)
+    const mark = await Mark.create({ ...req.body, userId: req.user._id })
+    res.status(201).json(mark)
   } catch (err) {
     res.status(400).json({ error: clientError(err) })
   }
@@ -36,23 +36,23 @@ router.post('/', validate(taskRules), async (req, res) => {
 
 router.get('/:id', async (req, res) => {
   try {
-    const task = await Task.findOne({ _id: req.params.id, userId: req.user._id })
-    if (!task) return res.status(404).json({ error: 'Task not found' })
-    res.json(task)
+    const mark = await Mark.findOne({ _id: req.params.id, userId: req.user._id })
+    if (!mark) return res.status(404).json({ error: 'Mark not found' })
+    res.json(mark)
   } catch {
     res.status(500).json({ error: 'Something went wrong' })
   }
 })
 
-router.put('/:id', validate(taskRules, { requireAll: false }), async (req, res) => {
+router.put('/:id', validate(markRules, { requireAll: false }), async (req, res) => {
   try {
-    const task = await Task.findOneAndUpdate(
+    const mark = await Mark.findOneAndUpdate(
       { _id: req.params.id, userId: req.user._id },
       req.body,
       { new: true, runValidators: true }
     )
-    if (!task) return res.status(404).json({ error: 'Task not found' })
-    res.json(task)
+    if (!mark) return res.status(404).json({ error: 'Mark not found' })
+    res.json(mark)
   } catch (err) {
     res.status(400).json({ error: clientError(err) })
   }
@@ -60,9 +60,9 @@ router.put('/:id', validate(taskRules, { requireAll: false }), async (req, res) 
 
 router.delete('/:id', async (req, res) => {
   try {
-    const task = await Task.findOneAndDelete({ _id: req.params.id, userId: req.user._id })
-    if (!task) return res.status(404).json({ error: 'Task not found' })
-    res.json({ message: 'Task deleted' })
+    const mark = await Mark.findOneAndDelete({ _id: req.params.id, userId: req.user._id })
+    if (!mark) return res.status(404).json({ error: 'Mark not found' })
+    res.json({ message: 'Mark deleted' })
   } catch {
     res.status(500).json({ error: 'Something went wrong' })
   }

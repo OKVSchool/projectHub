@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 import { useAuth } from '@/context/AuthContext'
 import { api } from '@/lib/api'
 
-export default function NewProject() {
+export default function NewEndeavor() {
   const { user } = useAuth()
   const router = useRouter()
   const [form, setForm] = useState({
@@ -24,11 +24,11 @@ export default function NewProject() {
     setError('')
     setSubmitting(true)
     try {
-      const project = await api.createProject({
+      const endeavor = await api.createEndeavor({
         ...form,
         tags: form.tags.split(',').map(t => t.trim()).filter(Boolean)
       })
-      router.push(`/projects/${project._id}`)
+      router.push(`/endeavors/${endeavor._id}`)
     } catch (err) {
       setError(err.message)
     } finally {
@@ -46,7 +46,7 @@ export default function NewProject() {
       >
         ← Back
       </button>
-      <h1 style={{ fontSize: '1.5rem', fontWeight: 700, marginBottom: '1.5rem' }}>New Project</h1>
+      <h1 style={{ fontSize: '1.5rem', fontWeight: 700, marginBottom: '1.5rem' }}>New Endeavor</h1>
 
       {error && (
         <p style={{ color: '#f87171', background: '#1a1a1a', padding: '0.75rem', borderRadius: 6, marginBottom: '1rem' }}>
@@ -58,8 +58,8 @@ export default function NewProject() {
         <input
           value={form.title}
           onChange={e => setForm(f => ({ ...f, title: e.target.value }))}
-          placeholder="Project title *"
-          aria-label="Project title"
+          placeholder="Endeavor title *"
+          aria-label="Endeavor title"
           required
           style={inputStyle}
         />
@@ -67,7 +67,7 @@ export default function NewProject() {
           value={form.description}
           onChange={e => setForm(f => ({ ...f, description: e.target.value }))}
           placeholder="Description"
-          aria-label="Project description"
+          aria-label="Endeavor description"
           style={{ ...inputStyle, minHeight: 100, resize: 'vertical' }}
         />
         <input
@@ -94,7 +94,7 @@ export default function NewProject() {
         <select
           value={form.status}
           onChange={e => setForm(f => ({ ...f, status: e.target.value }))}
-          aria-label="Project status"
+          aria-label="Endeavor status"
           style={inputStyle}
         >
           <option value="active">Active</option>
@@ -102,7 +102,7 @@ export default function NewProject() {
           <option value="paused">Paused</option>
         </select>
         <button type="submit" disabled={submitting} style={btnStyle}>
-          {submitting ? 'Creating…' : 'Create Project'}
+          {submitting ? 'Creating…' : 'Create Endeavor'}
         </button>
       </form>
     </div>

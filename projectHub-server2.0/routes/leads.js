@@ -1,10 +1,10 @@
 const router = require('express').Router()
-const Idea = require('../models/Idea')
+const Lead = require('../models/Lead')
 const requireAuth = require('../middleware/requireAuth')
 const validate = require('../middleware/validate')
 const { clientError } = require('../middleware/httpError')
 
-const ideaRules = {
+const leadRules = {
   title:       { required: true, minLength: 1, maxLength: 100 },
   description: { maxLength: 500 },
   category:    { maxLength: 50 },
@@ -17,17 +17,17 @@ router.use(requireAuth)
 router.get('/', async (req, res) => {
   try {
     const filter = req.user.role === 'admin' ? {} : { userId: req.user._id }
-    const ideas = await Idea.find(filter).sort({ createdAt: -1 })
-    res.json(ideas)
+    const leads = await Lead.find(filter).sort({ createdAt: -1 })
+    res.json(leads)
   } catch {
     res.status(500).json({ error: 'Something went wrong' })
   }
 })
 
-router.post('/', validate(ideaRules), async (req, res) => {
+router.post('/', validate(leadRules), async (req, res) => {
   try {
-    const idea = await Idea.create({ ...req.body, userId: req.user._id })
-    res.status(201).json(idea)
+    const lead = await Lead.create({ ...req.body, userId: req.user._id })
+    res.status(201).json(lead)
   } catch (err) {
     res.status(400).json({ error: clientError(err) })
   }
@@ -35,23 +35,23 @@ router.post('/', validate(ideaRules), async (req, res) => {
 
 router.get('/:id', async (req, res) => {
   try {
-    const idea = await Idea.findOne({ _id: req.params.id, userId: req.user._id })
-    if (!idea) return res.status(404).json({ error: 'Idea not found' })
-    res.json(idea)
+    const lead = await Lead.findOne({ _id: req.params.id, userId: req.user._id })
+    if (!lead) return res.status(404).json({ error: 'Lead not found' })
+    res.json(lead)
   } catch {
     res.status(500).json({ error: 'Something went wrong' })
   }
 })
 
-router.put('/:id', validate(ideaRules, { requireAll: false }), async (req, res) => {
+router.put('/:id', validate(leadRules, { requireAll: false }), async (req, res) => {
   try {
-    const idea = await Idea.findOneAndUpdate(
+    const lead = await Lead.findOneAndUpdate(
       { _id: req.params.id, userId: req.user._id },
       req.body,
       { new: true, runValidators: true }
     )
-    if (!idea) return res.status(404).json({ error: 'Idea not found' })
-    res.json(idea)
+    if (!lead) return res.status(404).json({ error: 'Lead not found' })
+    res.json(lead)
   } catch (err) {
     res.status(400).json({ error: clientError(err) })
   }
@@ -59,9 +59,9 @@ router.put('/:id', validate(ideaRules, { requireAll: false }), async (req, res) 
 
 router.delete('/:id', async (req, res) => {
   try {
-    const idea = await Idea.findOneAndDelete({ _id: req.params.id, userId: req.user._id })
-    if (!idea) return res.status(404).json({ error: 'Idea not found' })
-    res.json({ message: 'Idea deleted' })
+    const lead = await Lead.findOneAndDelete({ _id: req.params.id, userId: req.user._id })
+    if (!lead) return res.status(404).json({ error: 'Lead not found' })
+    res.json({ message: 'Lead deleted' })
   } catch {
     res.status(500).json({ error: 'Something went wrong' })
   }

@@ -3,14 +3,14 @@
 import { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
 import { api } from '@/lib/api'
-import ThoughtPanel from './ThoughtPanel'
-import TaskList from './TaskList'
+import TracePanel from './TracePanel'
+import MarkList from './MarkList'
 
-export default function ProjectPanel({ project, thoughts, onUpdateThoughts, isActive = false }) {
+export default function EndeavorPanel({ endeavor, traces, onUpdateTraces, isActive = false }) {
   const [open, setOpen] = useState(false)
   const [highlighted, setHighlighted] = useState(false)
-  const [addingThought, setAddingThought] = useState(false)
-  const [newThought, setNewThought] = useState('')
+  const [addingTrace, setAddingTrace] = useState(false)
+  const [newTrace, setNewTrace] = useState('')
   const ref = useRef(null)
 
   useEffect(() => {
@@ -22,13 +22,13 @@ export default function ProjectPanel({ project, thoughts, onUpdateThoughts, isAc
     return () => { clearTimeout(clearHighlight); clearTimeout(scroll) }
   }, [isActive])
 
-  async function addThought(e) {
+  async function addTrace(e) {
     e.preventDefault()
-    if (!newThought.trim()) return
-    await api.createThought({ title: newThought, projectId: project._id })
-    setNewThought('')
-    setAddingThought(false)
-    onUpdateThoughts()
+    if (!newTrace.trim()) return
+    await api.createTrace({ title: newTrace, projectId: endeavor._id })
+    setNewTrace('')
+    setAddingTrace(false)
+    onUpdateTraces()
   }
 
   return (
@@ -38,10 +38,10 @@ export default function ProjectPanel({ project, thoughts, onUpdateThoughts, isAc
         onClick={() => setOpen(o => !o)}
       >
         <span style={{ color: '#555', fontSize: '0.75rem' }}>{open ? '▼' : '▶'}</span>
-        <span style={{ flex: 1, fontWeight: 500 }}>{project.title}</span>
-        <span style={{ fontSize: '0.75rem', color: '#888' }}>{project.status}</span>
+        <span style={{ flex: 1, fontWeight: 500 }}>{endeavor.title}</span>
+        <span style={{ fontSize: '0.75rem', color: '#888' }}>{endeavor.status}</span>
         <Link
-          href={`/projects/${project._id}`}
+          href={`/endeavors/${endeavor._id}`}
           onClick={e => e.stopPropagation()}
           style={{ fontSize: '0.8rem', color: '#e07820' }}
         >
@@ -52,24 +52,24 @@ export default function ProjectPanel({ project, thoughts, onUpdateThoughts, isAc
       {open && (
         <div style={{ padding: '0 1rem 1rem', borderTop: '1px solid #2a2a2a' }}>
           <div style={{ marginTop: '0.75rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-            {thoughts.length === 0
-              ? <p style={{ color: '#555', fontSize: '0.875rem' }}>No thoughts linked to this project.</p>
-              : thoughts.map(t => <ThoughtPanel key={t._id} thought={t} onDelete={onUpdateThoughts} nested />)
+            {traces.length === 0
+              ? <p style={{ color: '#555', fontSize: '0.875rem' }}>No traces linked to this endeavor.</p>
+              : traces.map(t => <TracePanel key={t._id} trace={t} onDelete={onUpdateTraces} nested />)
             }
           </div>
 
-          {addingThought ? (
-            <form onSubmit={addThought} style={{ display: 'flex', gap: '0.5rem', marginTop: '0.75rem' }}>
-              <input autoFocus value={newThought} onChange={e => setNewThought(e.target.value)} placeholder="New thought…" style={miniInput} />
+          {addingTrace ? (
+            <form onSubmit={addTrace} style={{ display: 'flex', gap: '0.5rem', marginTop: '0.75rem' }}>
+              <input autoFocus value={newTrace} onChange={e => setNewTrace(e.target.value)} placeholder="New trace…" style={miniInput} />
               <button type="submit" style={miniBtn}>Add</button>
-              <button type="button" onClick={() => setAddingThought(false)} style={{ ...miniBtn, background: '#2a2a2a' }}>✕</button>
+              <button type="button" onClick={() => setAddingTrace(false)} style={{ ...miniBtn, background: '#2a2a2a' }}>✕</button>
             </form>
           ) : (
-            <button onClick={() => setAddingThought(true)} style={{ ...miniBtn, marginTop: '0.75rem' }}>+ Thought</button>
+            <button onClick={() => setAddingTrace(true)} style={{ ...miniBtn, marginTop: '0.75rem' }}>+ Trace</button>
           )}
 
           <div style={{ marginTop: '1.5rem' }}>
-            <TaskList parentId={project._id} parentType="projectId" />
+            <MarkList parentId={endeavor._id} parentType="projectId" />
           </div>
         </div>
       )}

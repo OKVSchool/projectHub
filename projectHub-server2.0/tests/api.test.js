@@ -76,21 +76,21 @@ describe('Auth', () => {
   })
 
   test('protected route rejects request with no token', async () => {
-    const res = await request(app).get('/projects')
+    const res = await request(app).get('/endeavors')
     expect(res.status).toBe(401)
   })
 
   test('protected route rejects tampered token', async () => {
     const res = await request(app)
-      .get('/projects')
+      .get('/endeavors')
       .set('Authorization', 'Bearer eyJhbGciOiJIUzI1NiJ9.dGFtcGVyZWQ.invalidsignature')
     expect(res.status).toBe(401)
   })
 })
 
-// ─── Projects CRUD ────────────────────────────────────────────────────────────
+// ─── Endeavors CRUD ───────────────────────────────────────────────────────────
 
-describe('Projects CRUD', () => {
+describe('Endeavors CRUD', () => {
   let token
 
   beforeEach(async () => {
@@ -98,38 +98,38 @@ describe('Projects CRUD', () => {
     token = t
   })
 
-  test('creates a project and returns 201', async () => {
+  test('creates an endeavor and returns 201', async () => {
     const res = await request(app)
-      .post('/projects')
+      .post('/endeavors')
       .set('Authorization', `Bearer ${token}`)
-      .send({ title: 'My Project' })
+      .send({ title: 'My Endeavor' })
     expect(res.status).toBe(201)
-    expect(res.body.title).toBe('My Project')
+    expect(res.body.title).toBe('My Endeavor')
     expect(res.body._id).toBeDefined()
   })
 
-  test('lists the authenticated user\'s projects', async () => {
-    await request(app).post('/projects').set('Authorization', `Bearer ${token}`).send({ title: 'Project One' })
-    await request(app).post('/projects').set('Authorization', `Bearer ${token}`).send({ title: 'Project Two' })
-    const res = await request(app).get('/projects').set('Authorization', `Bearer ${token}`)
+  test('lists the authenticated user\'s endeavors', async () => {
+    await request(app).post('/endeavors').set('Authorization', `Bearer ${token}`).send({ title: 'Endeavor One' })
+    await request(app).post('/endeavors').set('Authorization', `Bearer ${token}`).send({ title: 'Endeavor Two' })
+    const res = await request(app).get('/endeavors').set('Authorization', `Bearer ${token}`)
     expect(res.status).toBe(200)
     expect(res.body).toHaveLength(2)
   })
 
-  test('updates own project', async () => {
-    const create = await request(app).post('/projects').set('Authorization', `Bearer ${token}`).send({ title: 'Original' })
+  test('updates own endeavor', async () => {
+    const create = await request(app).post('/endeavors').set('Authorization', `Bearer ${token}`).send({ title: 'Original' })
     const id = create.body._id
-    const res = await request(app).put(`/projects/${id}`).set('Authorization', `Bearer ${token}`).send({ title: 'Updated' })
+    const res = await request(app).put(`/endeavors/${id}`).set('Authorization', `Bearer ${token}`).send({ title: 'Updated' })
     expect(res.status).toBe(200)
     expect(res.body.title).toBe('Updated')
   })
 
-  test('deletes own project', async () => {
-    const create = await request(app).post('/projects').set('Authorization', `Bearer ${token}`).send({ title: 'To Delete' })
+  test('deletes own endeavor', async () => {
+    const create = await request(app).post('/endeavors').set('Authorization', `Bearer ${token}`).send({ title: 'To Delete' })
     const id = create.body._id
-    const res = await request(app).delete(`/projects/${id}`).set('Authorization', `Bearer ${token}`)
+    const res = await request(app).delete(`/endeavors/${id}`).set('Authorization', `Bearer ${token}`)
     expect(res.status).toBe(200)
-    const check = await request(app).get(`/projects/${id}`).set('Authorization', `Bearer ${token}`)
+    const check = await request(app).get(`/endeavors/${id}`).set('Authorization', `Bearer ${token}`)
     expect(check.status).toBe(404)
   })
 })
@@ -144,36 +144,36 @@ describe('Input validation', () => {
     token = t
   })
 
-  test('rejects project with missing title', async () => {
+  test('rejects endeavor with missing title', async () => {
     const res = await request(app)
-      .post('/projects')
+      .post('/endeavors')
       .set('Authorization', `Bearer ${token}`)
       .send({ description: 'No title here' })
     expect(res.status).toBe(400)
     expect(res.body.error).toMatch(/title/)
   })
 
-  test('rejects project title over 100 characters', async () => {
+  test('rejects endeavor title over 100 characters', async () => {
     const res = await request(app)
-      .post('/projects')
+      .post('/endeavors')
       .set('Authorization', `Bearer ${token}`)
       .send({ title: 'x'.repeat(101) })
     expect(res.status).toBe(400)
     expect(res.body.error).toMatch(/title/)
   })
 
-  test('rejects project with invalid repoUrl', async () => {
+  test('rejects endeavor with invalid repoUrl', async () => {
     const res = await request(app)
-      .post('/projects')
+      .post('/endeavors')
       .set('Authorization', `Bearer ${token}`)
       .send({ title: 'Valid Title', repoUrl: 'not-a-url' })
     expect(res.status).toBe(400)
     expect(res.body.error).toMatch(/repoUrl/)
   })
 
-  test('rejects project with invalid status enum', async () => {
+  test('rejects endeavor with invalid status enum', async () => {
     const res = await request(app)
-      .post('/projects')
+      .post('/endeavors')
       .set('Authorization', `Bearer ${token}`)
       .send({ title: 'Valid Title', status: 'invalid-status' })
     expect(res.status).toBe(400)
@@ -184,7 +184,7 @@ describe('Input validation', () => {
 // ─── Ownership enforcement ────────────────────────────────────────────────────
 
 describe('Ownership enforcement', () => {
-  let tokenA, tokenB, projectId
+  let tokenA, tokenB, endeavorId
 
   beforeEach(async () => {
     const a = await signup({ email: 'user-a@example.com' })
@@ -192,36 +192,36 @@ describe('Ownership enforcement', () => {
     tokenA = a.token
     tokenB = b.token
     const create = await request(app)
-      .post('/projects')
+      .post('/endeavors')
       .set('Authorization', `Bearer ${tokenA}`)
-      .send({ title: 'User A Project' })
-    projectId = create.body._id
+      .send({ title: 'User A Endeavor' })
+    endeavorId = create.body._id
   })
 
-  test('user B gets 404 reading user A\'s project', async () => {
-    const res = await request(app).get(`/projects/${projectId}`).set('Authorization', `Bearer ${tokenB}`)
+  test('user B gets 404 reading user A\'s endeavor', async () => {
+    const res = await request(app).get(`/endeavors/${endeavorId}`).set('Authorization', `Bearer ${tokenB}`)
     expect(res.status).toBe(404)
   })
 
-  test('user B gets 404 updating user A\'s project', async () => {
+  test('user B gets 404 updating user A\'s endeavor', async () => {
     const res = await request(app)
-      .put(`/projects/${projectId}`)
+      .put(`/endeavors/${endeavorId}`)
       .set('Authorization', `Bearer ${tokenB}`)
       .send({ title: 'Hijacked' })
     expect(res.status).toBe(404)
   })
 
-  test('user B gets 404 deleting user A\'s project', async () => {
-    const res = await request(app).delete(`/projects/${projectId}`).set('Authorization', `Bearer ${tokenB}`)
+  test('user B gets 404 deleting user A\'s endeavor', async () => {
+    const res = await request(app).delete(`/endeavors/${endeavorId}`).set('Authorization', `Bearer ${tokenB}`)
     expect(res.status).toBe(404)
   })
 
-  test('user B only sees their own projects in the list', async () => {
-    await request(app).post('/projects').set('Authorization', `Bearer ${tokenB}`).send({ title: 'B\'s Project' })
-    const res = await request(app).get('/projects').set('Authorization', `Bearer ${tokenB}`)
+  test('user B only sees their own endeavors in the list', async () => {
+    await request(app).post('/endeavors').set('Authorization', `Bearer ${tokenB}`).send({ title: 'B\'s Endeavor' })
+    const res = await request(app).get('/endeavors').set('Authorization', `Bearer ${tokenB}`)
     expect(res.status).toBe(200)
     expect(res.body).toHaveLength(1)
-    expect(res.body[0].title).toBe('B\'s Project')
+    expect(res.body[0].title).toBe('B\'s Endeavor')
   })
 })
 
