@@ -66,22 +66,25 @@ export default function NewEndeavor() {
         <textarea
           value={form.description}
           onChange={e => setForm(f => ({ ...f, description: e.target.value }))}
-          placeholder="Description"
+          placeholder="Description *"
           aria-label="Endeavor description"
+          required
           style={{ ...inputStyle, minHeight: 100, resize: 'vertical' }}
         />
         <input
           value={form.framework}
           onChange={e => setForm(f => ({ ...f, framework: e.target.value }))}
-          placeholder="Framework (e.g. React, Next.js, Express)"
+          placeholder="Framework *"
           aria-label="Framework"
+          required
           style={inputStyle}
         />
         <input
           value={form.repoUrl}
           onChange={e => setForm(f => ({ ...f, repoUrl: e.target.value }))}
-          placeholder="Repo URL"
+          placeholder="Repo URL *"
           aria-label="Repository URL"
+          required
           style={inputStyle}
         />
         <input

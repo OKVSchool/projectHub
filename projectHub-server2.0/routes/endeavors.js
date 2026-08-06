@@ -22,9 +22,9 @@ const upload = multer({
 
 const endeavorRules = {
   title:       { required: true, minLength: 1, maxLength: 100 },
-  description: { maxLength: 1000 },
-  framework:   { maxLength: 50 },
-  repoUrl:     { isUrl: true },
+  description: { required: true, maxLength: 1000 },
+  framework:   { required: true, maxLength: 50 },
+  repoUrl:     { required: true, isUrl: true },
   status:      { enum: ['active', 'completed', 'paused', 'deployed'] },
 }
 
