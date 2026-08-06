@@ -29,7 +29,7 @@ export default function EndeavorList() {
   return (
     <div>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
-        <h1 style={{ fontSize: '1.75rem', fontWeight: 700 }}>My Endeavors</h1>
+        <h1 style={{ fontSize: '1.75rem', fontWeight: 700 }}>Deployments</h1>
         <button
           onClick={() => router.push('/endeavors/new')}
           style={{ background: '#e07820', color: '#fff', border: 'none', padding: '0.5rem 1.25rem', borderRadius: 6, fontWeight: 600 }}
