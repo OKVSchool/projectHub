@@ -14,7 +14,7 @@ router.use(requireAuth)
 router.get('/', async (req, res) => {
   try {
     const { projectId, ideaId, thoughtId } = req.query
-    const filter = { userId: req.user._id }
+    const filter = { userId: req.user._id, deletedAt: null }
     if (projectId) filter.projectId = projectId
     if (ideaId) filter.ideaId = ideaId
     if (thoughtId) filter.thoughtId = thoughtId
@@ -36,7 +36,7 @@ router.post('/', validate(markRules), async (req, res) => {
 
 router.get('/:id', async (req, res) => {
   try {
-    const mark = await Mark.findOne({ _id: req.params.id, userId: req.user._id })
+    const mark = await Mark.findOne({ _id: req.params.id, userId: req.user._id, deletedAt: null })
     if (!mark) return res.status(404).json({ error: 'Mark not found' })
     res.json(mark)
   } catch {
@@ -47,7 +47,7 @@ router.get('/:id', async (req, res) => {
 router.put('/:id', validate(markRules, { requireAll: false }), async (req, res) => {
   try {
     const mark = await Mark.findOneAndUpdate(
-      { _id: req.params.id, userId: req.user._id },
+      { _id: req.params.id, userId: req.user._id, deletedAt: null },
       req.body,
       { new: true, runValidators: true }
     )
@@ -55,6 +55,20 @@ router.put('/:id', validate(markRules, { requireAll: false }), async (req, res) 
     res.json(mark)
   } catch (err) {
     res.status(400).json({ error: clientError(err) })
+  }
+})
+
+router.patch('/:id/stash', async (req, res) => {
+  try {
+    const mark = await Mark.findOneAndUpdate(
+      { _id: req.params.id, userId: req.user._id, deletedAt: null },
+      { $set: { deletedAt: new Date() } },
+      { new: true }
+    )
+    if (!mark) return res.status(404).json({ error: 'Mark not found' })
+    res.json({ message: 'Mark stashed' })
+  } catch {
+    res.status(500).json({ error: 'Something went wrong' })
   }
 })
 

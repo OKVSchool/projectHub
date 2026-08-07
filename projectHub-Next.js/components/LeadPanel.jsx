@@ -1,14 +1,18 @@
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
+import { useRouter } from 'next/navigation'
 import { api } from '@/lib/api'
 import TracePanel from './TracePanel'
 import MarkList from './MarkList'
+import ConfirmModal from './ConfirmModal'
 
 export default function LeadPanel({ lead, traces, onUpdate, onUpdateTraces, isActive = false }) {
+  const router = useRouter()
   const [open, setOpen] = useState(false)
   const [highlighted, setHighlighted] = useState(false)
   const [editing, setEditing] = useState(false)
+  const [confirming, setConfirming] = useState(false)
   const ref = useRef(null)
 
   useEffect(() => {
@@ -38,9 +42,20 @@ export default function LeadPanel({ lead, traces, onUpdate, onUpdateTraces, isAc
   }
 
   async function deleteLead() {
-    if (!confirm('Delete this lead?')) return
     await api.deleteLead(lead._id)
+    setConfirming(false)
     onUpdate()
+  }
+
+  async function stashLead() {
+    await api.stashLead(lead._id)
+    setConfirming(false)
+    onUpdate()
+  }
+
+  function promoteToEndeavor() {
+    const p = new URLSearchParams({ promoteFrom: 'leads', sourceId: lead._id, title: lead.title, description: lead.description || '' })
+    router.push(`/endeavors/new?${p}`)
   }
 
   async function addTrace(e) {
@@ -56,6 +71,15 @@ export default function LeadPanel({ lead, traces, onUpdate, onUpdateTraces, isAc
 
   return (
     <div ref={ref} style={{ background: '#1a1a1a', border: `1px solid ${highlighted ? '#e07820' : '#2a2a2a'}`, borderRadius: 8, transition: 'border-color 0.4s' }}>
+      {confirming && (
+        <ConfirmModal
+          message={`Select ${lead.title}'s fate.`}
+          onDelete={deleteLead}
+          onStash={stashLead}
+          onCancel={() => setConfirming(false)}
+        />
+      )}
+
       <div
         style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0.9rem 1rem', cursor: 'pointer' }}
         onClick={() => setOpen(o => !o)}
@@ -96,7 +120,8 @@ export default function LeadPanel({ lead, traces, onUpdate, onUpdateTraces, isAc
           <option value="high">high</option>
         </select>
         <button onClick={e => { e.stopPropagation(); setEditing(true) }} aria-label="Edit lead" style={iconBtn}>✏️</button>
-        <button onClick={e => { e.stopPropagation(); deleteLead() }} aria-label="Delete lead" style={{ ...iconBtn, color: '#ef4444' }}>🗑</button>
+        <button onClick={e => { e.stopPropagation(); setConfirming(true) }} aria-label="Delete lead" style={{ ...iconBtn, color: '#ef4444' }}>🗑</button>
+        <button onClick={e => { e.stopPropagation(); promoteToEndeavor() }} aria-label="Promote to Endeavor" style={{ ...iconBtn, fontSize: '0.7rem', color: '#e07820', fontWeight: 600 }}>↑ Endeavor</button>
       </div>
 
       {open && (

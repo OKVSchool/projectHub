@@ -16,7 +16,9 @@ router.use(requireAuth)
 
 router.get('/', async (req, res) => {
   try {
-    const filter = req.user.role === 'admin' ? {} : { userId: req.user._id }
+    const filter = req.user.role === 'admin'
+      ? { deletedAt: null }
+      : { userId: req.user._id, deletedAt: null }
     const leads = await Lead.find(filter).sort({ createdAt: -1 })
     res.json(leads)
   } catch {
@@ -35,7 +37,7 @@ router.post('/', validate(leadRules), async (req, res) => {
 
 router.get('/:id', async (req, res) => {
   try {
-    const lead = await Lead.findOne({ _id: req.params.id, userId: req.user._id })
+    const lead = await Lead.findOne({ _id: req.params.id, userId: req.user._id, deletedAt: null })
     if (!lead) return res.status(404).json({ error: 'Lead not found' })
     res.json(lead)
   } catch {
@@ -46,7 +48,7 @@ router.get('/:id', async (req, res) => {
 router.put('/:id', validate(leadRules, { requireAll: false }), async (req, res) => {
   try {
     const lead = await Lead.findOneAndUpdate(
-      { _id: req.params.id, userId: req.user._id },
+      { _id: req.params.id, userId: req.user._id, deletedAt: null },
       req.body,
       { new: true, runValidators: true }
     )
@@ -54,6 +56,20 @@ router.put('/:id', validate(leadRules, { requireAll: false }), async (req, res) 
     res.json(lead)
   } catch (err) {
     res.status(400).json({ error: clientError(err) })
+  }
+})
+
+router.patch('/:id/stash', async (req, res) => {
+  try {
+    const lead = await Lead.findOneAndUpdate(
+      { _id: req.params.id, userId: req.user._id, deletedAt: null },
+      { $set: { deletedAt: new Date() } },
+      { new: true }
+    )
+    if (!lead) return res.status(404).json({ error: 'Lead not found' })
+    res.json({ message: 'Lead stashed' })
+  } catch {
+    res.status(500).json({ error: 'Something went wrong' })
   }
 })
 

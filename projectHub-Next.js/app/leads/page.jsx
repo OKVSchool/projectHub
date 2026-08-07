@@ -20,7 +20,7 @@ const TYPE_COLORS = {
 export default function VentureList() {
   const { user, loading } = useAuth()
   const router = useRouter()
-  const [tab, setTab] = useState('endeavors')
+  const [tab, setTab] = useState('traces')
   const [leads, setLeads] = useState([])
   const [traces, setTraces] = useState([])
   const [endeavors, setEndeavors] = useState([])
@@ -52,6 +52,7 @@ export default function VentureList() {
 
   const refreshLeads = () => api.getLeads().then(setLeads)
   const refreshTraces = () => api.getTraces().then(setTraces)
+  const refreshEndeavors = () => api.getEndeavors().then(setEndeavors)
 
   function handleNavigate({ tab, activeId }) {
     setSearchQuery('')
@@ -138,7 +139,7 @@ export default function VentureList() {
 
           {tab === 'traces' && <TracesTab traces={traces} refresh={refreshTraces} activeId={activeId} />}
           {tab === 'leads' && <LeadsTab leads={leads} traces={traces} refresh={refreshLeads} refreshTraces={refreshTraces} activeId={activeId} />}
-          {tab === 'endeavors' && <EndeavorTab endeavors={endeavors} traces={traces} refreshTraces={refreshTraces} activeId={activeId} />}
+          {tab === 'endeavors' && <EndeavorTab endeavors={endeavors} traces={traces} refresh={refreshEndeavors} refreshTraces={refreshTraces} activeId={activeId} />}
         </>
       )}
     </div>
@@ -250,7 +251,7 @@ function TracesTab({ traces, refresh, activeId }) {
       <AddTraceForm onAdd={refresh} />
       <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', marginTop: '1.5rem' }}>
         {standalone.length === 0 ? (
-          <p style={{ color: '#555' }}>No standalone traces yet.</p>
+          <p style={{ color: '#555' }}>Uncharted Waters</p>
         ) : standalone.map(t => <TracePanel key={t._id} trace={t} onDelete={refresh} isActive={activeId === t._id} />)}
       </div>
     </div>
@@ -263,7 +264,7 @@ function LeadsTab({ leads, traces, refresh, refreshTraces, activeId }) {
       <AddLeadForm onAdd={refresh} />
       <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', marginTop: '1.5rem' }}>
         {leads.length === 0 ? (
-          <p style={{ color: '#555' }}>No leads yet.</p>
+          <p style={{ color: '#555' }}>Uncharted Waters</p>
         ) : leads.map(lead => (
           <LeadPanel key={lead._id} lead={lead} traces={traces.filter(t => t.ideaId === lead._id)} onUpdate={refresh} onUpdateTraces={refreshTraces} isActive={activeId === lead._id} />
         ))}
@@ -272,7 +273,7 @@ function LeadsTab({ leads, traces, refresh, refreshTraces, activeId }) {
   )
 }
 
-function EndeavorTab({ endeavors, traces, refreshTraces, activeId }) {
+function EndeavorTab({ endeavors, traces, refresh, refreshTraces, activeId }) {
   const router = useRouter()
   return (
     <div>
@@ -281,9 +282,9 @@ function EndeavorTab({ endeavors, traces, refreshTraces, activeId }) {
       </button>
       <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', marginTop: '1.5rem' }}>
         {endeavors.length === 0 ? (
-          <p style={{ color: '#555' }}>No endeavors yet.</p>
+          <p style={{ color: '#555' }}>Uncharted Waters</p>
         ) : endeavors.map(e => (
-          <EndeavorPanel key={e._id} endeavor={e} traces={traces.filter(t => t.projectId === e._id)} onUpdateTraces={refreshTraces} isActive={activeId === e._id} />
+          <EndeavorPanel key={e._id} endeavor={e} traces={traces.filter(t => t.projectId === e._id)} onUpdate={refresh} onUpdateTraces={refreshTraces} isActive={activeId === e._id} />
         ))}
       </div>
     </div>

@@ -13,7 +13,9 @@ router.use(requireAuth)
 
 router.get('/', async (req, res) => {
   try {
-    const filter = req.user.role === 'admin' ? {} : { userId: req.user._id }
+    const filter = req.user.role === 'admin'
+      ? { deletedAt: null }
+      : { userId: req.user._id, deletedAt: null }
     const traces = await Trace.find(filter).sort({ createdAt: -1 })
     res.json(traces)
   } catch {
@@ -32,7 +34,7 @@ router.post('/', validate(traceRules), async (req, res) => {
 
 router.get('/:id', async (req, res) => {
   try {
-    const trace = await Trace.findOne({ _id: req.params.id, userId: req.user._id })
+    const trace = await Trace.findOne({ _id: req.params.id, userId: req.user._id, deletedAt: null })
     if (!trace) return res.status(404).json({ error: 'Trace not found' })
     res.json(trace)
   } catch {
@@ -43,7 +45,7 @@ router.get('/:id', async (req, res) => {
 router.put('/:id', validate(traceRules, { requireAll: false }), async (req, res) => {
   try {
     const trace = await Trace.findOneAndUpdate(
-      { _id: req.params.id, userId: req.user._id },
+      { _id: req.params.id, userId: req.user._id, deletedAt: null },
       req.body,
       { new: true, runValidators: true }
     )
@@ -51,6 +53,20 @@ router.put('/:id', validate(traceRules, { requireAll: false }), async (req, res)
     res.json(trace)
   } catch (err) {
     res.status(400).json({ error: clientError(err) })
+  }
+})
+
+router.patch('/:id/stash', async (req, res) => {
+  try {
+    const trace = await Trace.findOneAndUpdate(
+      { _id: req.params.id, userId: req.user._id, deletedAt: null },
+      { $set: { deletedAt: new Date() } },
+      { new: true }
+    )
+    if (!trace) return res.status(404).json({ error: 'Trace not found' })
+    res.json({ message: 'Trace stashed' })
+  } catch {
+    res.status(500).json({ error: 'Something went wrong' })
   }
 })
 

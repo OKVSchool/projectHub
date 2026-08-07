@@ -31,6 +31,7 @@ export const api = {
   createEndeavor: (body) => request('/endeavors', { method: 'POST', body: JSON.stringify(body) }),
   updateEndeavor: (id, body) => request(`/endeavors/${id}`, { method: 'PUT', body: JSON.stringify(body) }),
   deleteEndeavor: (id) => request(`/endeavors/${id}`, { method: 'DELETE' }),
+  stashEndeavor: (id) => request(`/endeavors/${id}/stash`, { method: 'PATCH' }),
   uploadEndeavorImage: (id, formData) => {
     const token = getToken()
     return fetch(`${BASE_URL}/endeavors/${id}/image`, {
@@ -46,6 +47,7 @@ export const api = {
   createLead: (body) => request('/leads', { method: 'POST', body: JSON.stringify(body) }),
   updateLead: (id, body) => request(`/leads/${id}`, { method: 'PUT', body: JSON.stringify(body) }),
   deleteLead: (id) => request(`/leads/${id}`, { method: 'DELETE' }),
+  stashLead: (id) => request(`/leads/${id}/stash`, { method: 'PATCH' }),
 
   // Traces
   getTraces: () => request('/traces'),
@@ -53,6 +55,7 @@ export const api = {
   createTrace: (body) => request('/traces', { method: 'POST', body: JSON.stringify(body) }),
   updateTrace: (id, body) => request(`/traces/${id}`, { method: 'PUT', body: JSON.stringify(body) }),
   deleteTrace: (id) => request(`/traces/${id}`, { method: 'DELETE' }),
+  stashTrace: (id) => request(`/traces/${id}/stash`, { method: 'PATCH' }),
 
   // Marks
   getMarks: (query = {}) => {
@@ -61,5 +64,15 @@ export const api = {
   },
   createMark: (body) => request('/marks', { method: 'POST', body: JSON.stringify(body) }),
   updateMark: (id, body) => request(`/marks/${id}`, { method: 'PUT', body: JSON.stringify(body) }),
-  deleteMark: (id) => request(`/marks/${id}`, { method: 'DELETE' })
+  deleteMark: (id) => request(`/marks/${id}`, { method: 'DELETE' }),
+  stashMark: (id) => request(`/marks/${id}/stash`, { method: 'PATCH' }),
+
+  // Promote
+  promote: (body) => request('/promote', { method: 'POST', body: JSON.stringify(body) }),
+
+  // Bin
+  getBin: () => request('/bin'),
+  restoreItem: (collection, id) => request(`/bin/${collection}/${id}/restore`, { method: 'POST' }),
+  resurfaceItem: (collection, id) => request(`/bin/${collection}/${id}/resurface`, { method: 'POST' }),
+  permanentDelete: (collection, id) => request(`/bin/${collection}/${id}`, { method: 'DELETE' }),
 }

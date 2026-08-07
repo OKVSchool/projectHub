@@ -26,13 +26,19 @@ const endeavorRules = {
   framework:   { required: true, maxLength: 50 },
   repoUrl:     { required: true, isUrl: true },
   status:      { enum: ['active', 'completed', 'paused', 'deployed'] },
+  liveUrl:     { isUrl: true },
+  demoUrl:     { isUrl: true },
+  version:     { maxLength: 30 },
+  platform:    { maxLength: 50 },
 }
 
 router.use(requireAuth)
 
 router.get('/', async (req, res) => {
   try {
-    const filter = req.user.role === 'admin' ? {} : { userId: req.user._id }
+    const filter = req.user.role === 'admin'
+      ? { deletedAt: null }
+      : { userId: req.user._id, deletedAt: null }
     const endeavors = await Endeavor.find(filter).sort({ createdAt: -1 })
     res.json(endeavors)
   } catch {
@@ -52,8 +58,8 @@ router.post('/', validate(endeavorRules), async (req, res) => {
 router.get('/:id', async (req, res) => {
   try {
     const filter = req.user.role === 'admin'
-      ? { _id: req.params.id }
-      : { _id: req.params.id, userId: req.user._id }
+      ? { _id: req.params.id, deletedAt: null }
+      : { _id: req.params.id, userId: req.user._id, deletedAt: null }
     const endeavor = await Endeavor.findOne(filter)
     if (!endeavor) return res.status(404).json({ error: 'Endeavor not found' })
     res.json(endeavor)
@@ -65,7 +71,7 @@ router.get('/:id', async (req, res) => {
 router.put('/:id', validate(endeavorRules, { requireAll: false }), async (req, res) => {
   try {
     const endeavor = await Endeavor.findOneAndUpdate(
-      { _id: req.params.id, userId: req.user._id },
+      { _id: req.params.id, userId: req.user._id, deletedAt: null },
       req.body,
       { new: true, runValidators: true }
     )
@@ -73,6 +79,20 @@ router.put('/:id', validate(endeavorRules, { requireAll: false }), async (req, r
     res.json(endeavor)
   } catch (err) {
     res.status(400).json({ error: clientError(err) })
+  }
+})
+
+router.patch('/:id/stash', async (req, res) => {
+  try {
+    const endeavor = await Endeavor.findOneAndUpdate(
+      { _id: req.params.id, userId: req.user._id, deletedAt: null },
+      { $set: { deletedAt: new Date() } },
+      { new: true }
+    )
+    if (!endeavor) return res.status(404).json({ error: 'Endeavor not found' })
+    res.json({ message: 'Endeavor stashed' })
+  } catch {
+    res.status(500).json({ error: 'Something went wrong' })
   }
 })
 
@@ -96,7 +116,7 @@ router.post('/:id/image', (req, res, next) => {
     if (!req.file) return res.status(400).json({ error: 'No image uploaded' })
     const imageUrl = `/uploads/${req.file.filename}`
     const endeavor = await Endeavor.findOneAndUpdate(
-      { _id: req.params.id, userId: req.user._id },
+      { _id: req.params.id, userId: req.user._id, deletedAt: null },
       { imageUrl },
       { new: true }
     )

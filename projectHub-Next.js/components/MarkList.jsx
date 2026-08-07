@@ -2,11 +2,13 @@
 
 import { useEffect, useState } from 'react'
 import { api } from '@/lib/api'
+import ConfirmModal from './ConfirmModal'
 
 export default function MarkList({ parentId, parentType }) {
   const [marks, setMarks] = useState([])
   const [newTitle, setNewTitle] = useState('')
   const [adding, setAdding] = useState(false)
+  const [confirmId, setConfirmId] = useState(null)
 
   useEffect(() => {
     api.getMarks({ [parentType]: parentId }).then(setMarks)
@@ -28,13 +30,31 @@ export default function MarkList({ parentId, parentType }) {
     setMarks(prev => prev.map(m => m._id === updated._id ? updated : m))
   }
 
-  async function deleteMark(id) {
-    await api.deleteMark(id)
-    setMarks(prev => prev.filter(m => m._id !== id))
+  async function deleteMark() {
+    await api.deleteMark(confirmId)
+    setMarks(prev => prev.filter(m => m._id !== confirmId))
+    setConfirmId(null)
   }
+
+  async function stashMark() {
+    await api.stashMark(confirmId)
+    setMarks(prev => prev.filter(m => m._id !== confirmId))
+    setConfirmId(null)
+  }
+
+  const confirmingMark = marks.find(m => m._id === confirmId)
 
   return (
     <div>
+      {confirmingMark && (
+        <ConfirmModal
+          message={`Select ${confirmingMark.title}'s fate.`}
+          onDelete={deleteMark}
+          onStash={stashMark}
+          onCancel={() => setConfirmId(null)}
+        />
+      )}
+
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
         <h2 style={{ fontSize: '1.1rem', fontWeight: 600 }}>Marks</h2>
         <button
@@ -61,7 +81,7 @@ export default function MarkList({ parentId, parentType }) {
       )}
 
       {marks.length === 0 ? (
-        <p style={{ color: '#555', fontSize: '0.875rem' }}>No marks yet.</p>
+        <p style={{ color: '#555', fontSize: '0.875rem' }}>No Marks</p>
       ) : (
         <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
           {marks.map(mark => (
@@ -83,7 +103,7 @@ export default function MarkList({ parentId, parentType }) {
               <span style={{ flex: 1, textDecoration: mark.done ? 'line-through' : 'none', color: mark.done ? '#555' : '#e5e5e5', fontSize: '0.9rem' }}>
                 {mark.title}
               </span>
-              <button onClick={() => deleteMark(mark._id)} style={{ background: 'none', border: 'none', color: '#ef4444', fontSize: '1rem', cursor: 'pointer' }}>
+              <button onClick={() => setConfirmId(mark._id)} style={{ background: 'none', border: 'none', color: '#ef4444', fontSize: '1rem', cursor: 'pointer' }}>
                 ×
               </button>
             </li>

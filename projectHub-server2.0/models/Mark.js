@@ -9,7 +9,10 @@ const markSchema = new mongoose.Schema({
   userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
   projectId: { type: mongoose.Schema.Types.ObjectId, ref: 'Endeavor', default: null },
   ideaId: { type: mongoose.Schema.Types.ObjectId, ref: 'Lead', default: null },
-  thoughtId: { type: mongoose.Schema.Types.ObjectId, ref: 'Trace', default: null }
+  thoughtId: { type: mongoose.Schema.Types.ObjectId, ref: 'Trace', default: null },
+  deletedAt: { type: Date, default: null }
 }, { timestamps: true })
+
+markSchema.index({ deletedAt: 1 }, { expireAfterSeconds: 2592000, sparse: true })
 
 module.exports = mongoose.model('Mark', markSchema)

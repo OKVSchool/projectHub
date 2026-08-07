@@ -1,11 +1,15 @@
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
+import { useRouter } from 'next/navigation'
 import { api } from '@/lib/api'
+import ConfirmModal from './ConfirmModal'
 
 export default function TracePanel({ trace, onDelete, nested = false, isActive = false }) {
+  const router = useRouter()
   const [editing, setEditing] = useState(false)
   const [highlighted, setHighlighted] = useState(false)
+  const [confirming, setConfirming] = useState(false)
   const [title, setTitle] = useState(trace.title)
   const ref = useRef(null)
 
@@ -24,7 +28,19 @@ export default function TracePanel({ trace, onDelete, nested = false, isActive =
 
   async function deleteTrace() {
     await api.deleteTrace(trace._id)
+    setConfirming(false)
     onDelete()
+  }
+
+  async function stashTrace() {
+    await api.stashTrace(trace._id)
+    setConfirming(false)
+    onDelete()
+  }
+
+  function promoteToLead() {
+    const p = new URLSearchParams({ promoteFrom: 'traces', sourceId: trace._id, title: trace.title, description: trace.description || '' })
+    router.push(`/leads/new?${p}`)
   }
 
   return (
@@ -38,6 +54,15 @@ export default function TracePanel({ trace, onDelete, nested = false, isActive =
       padding: '0.6rem 0.9rem',
       transition: 'border-color 0.4s'
     }}>
+      {confirming && (
+        <ConfirmModal
+          message={`Select ${trace.title}'s fate.`}
+          onDelete={deleteTrace}
+          onStash={stashTrace}
+          onCancel={() => setConfirming(false)}
+        />
+      )}
+
       <span style={{ color: '#555', fontSize: '0.75rem' }}>💭</span>
 
       {editing ? (
@@ -54,7 +79,8 @@ export default function TracePanel({ trace, onDelete, nested = false, isActive =
       )}
 
       <button onClick={() => setEditing(true)} aria-label="Edit trace" style={iconBtn}>✏️</button>
-      <button onClick={deleteTrace} aria-label="Delete trace" style={{ ...iconBtn, color: '#ef4444' }}>🗑</button>
+      <button onClick={() => setConfirming(true)} aria-label="Delete trace" style={{ ...iconBtn, color: '#ef4444' }}>🗑</button>
+      <button onClick={promoteToLead} aria-label="Promote to Lead" style={{ ...iconBtn, fontSize: '0.7rem', color: '#e07820', fontWeight: 600 }}>↑ Lead</button>
     </div>
   )
 }

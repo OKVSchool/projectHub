@@ -9,6 +9,8 @@ const leadRoutes = require('./routes/leads')
 const traceRoutes = require('./routes/traces')
 const markRoutes = require('./routes/marks')
 const adminRoutes = require('./routes/admin')
+const binRoutes = require('./routes/bin')
+const promoteRoutes = require('./routes/promote')
 
 const app = express()
 
@@ -26,5 +28,7 @@ app.use('/leads', leadRoutes)
 app.use('/traces', traceRoutes)
 app.use('/marks', markRoutes)
 app.use('/admin', adminRoutes)
+app.use('/bin', binRoutes)
+app.use('/promote', promoteRoutes)
 
 module.exports = app

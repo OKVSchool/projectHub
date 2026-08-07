@@ -1,227 +1,314 @@
-# velaWright — Architecture Document
+# velaWright — Architecture
 
 ---
 
 ## 1. System Diagram
 
 ```
- BROWSER
- ┌──────────────────────────────────────┐
- │  Next.js 15 App Router               │
- │  Deployed: Vercel                    │
- │                                      │
- │  /              Endeavors list        │
- │  /endeavors/new  Create endeavor     │
- │  /endeavors/:id  Endeavor detail     │
- │  /leads         Leads & Planning     │
- │  /dev           API test suite       │
- │  /login  /signup  (public)           │
- │                                      │
- │  Auth state: JWT stored in           │
- │  localStorage via AuthContext        │
- └──────────────┬───────────────────────┘
-                │ HTTPS + Bearer token
-                │ REST JSON
-                ▼
- ┌──────────────────────────────────────┐
- │  Express 4 REST API                  │
- │  Deployed: Render (Node service)     │
- │                                      │
- │  Middleware chain (every request):   │
- │  CORS → express.json → requireAuth  │
- │  → validate → route handler          │
- │                                      │
- │  /health         (before CORS)       │
- │  /auth           signup, login       │
- │  /endeavors      full CRUD + upload  │
- │  /leads          full CRUD           │
- │  /traces         full CRUD           │
- │  /marks          full CRUD           │
- │  /admin/users    admin only          │
- └──────────────┬───────────────────────┘
-                │ Mongoose ODM
-                │ TLS connection string
-                ▼
- ┌──────────────────────────────────────┐
- │  MongoDB Atlas                       │
- │  Free M0 cluster (cloud)             │
- │                                      │
- │  Collections:                        │
- │  users  endeavors  leads             │
- │  traces  marks                       │
- └──────────────────────────────────────┘
+BROWSER (Vercel / Next.js)
+  localStorage: vw_token (JWT), vw_user
+  lib/api.js: attaches Authorization: Bearer <token>
+  Pages call api.js → HTTP JSON → server
+        ↓
+
+EXPRESS SERVER (Render)
+  Global: CORS → express.json()
+  Public routes:
+    GET  /health
+    POST /auth/signup  → bcrypt hash → jwt.sign → {token, user}
+    POST /auth/login   → comparePassword → jwt.sign → {token, user}
+  requireAuth middleware (all other routes):
+    reads Bearer token → jwt.verify → User.findById → req.user
+  Per-route: validate() checks body fields
+  Route groups: /endeavors /leads /traces /marks
+                /promote /bin /admin
+        ↓
+
+MONGODB ATLAS (M0)
+  Collections: users, endeavors, leads, traces, marks
+  All queries scoped to userId: req.user._id
+  deletedAt field on content collections:
+    null  = active
+    Date  = stashed (30-day TTL index auto-purges)
 ```
 
-**Deployment environment variables:**
+Deployment environment variables:
 
-| Service  | Key vars                                      |
-|----------|-----------------------------------------------|
-| Render   | `MONGODB_URI`, `JWT_SECRET`, `CLIENT_URL`     |
-| Vercel   | `NEXT_PUBLIC_API_URL`                         |
-
-CORS on the server is locked to the value of `CLIENT_URL`. Vercel is set as the value, so no other origin can make credentialed requests to the API.
+| Service | Key vars |
+|---------|----------|
+| Render  | MONGODB_URI, JWT_SECRET, CLIENT_URL |
+| Vercel  | NEXT_PUBLIC_API_URL |
 
 ---
 
 ## 2. Data Model
 
-All collections include `createdAt` and `updatedAt` timestamps (Mongoose `{ timestamps: true }`). Every user-owned document carries a `userId` ObjectId reference to the User collection.
+```
+USER  ← root owner, no userId needed
+  _id        ObjectId  (auto)
+  email      String    required, unique, lowercase
+  password   String    required, bcrypt-hashed
+  name       String    required
+  role       String    enum[user, admin]  default: user
+  createdAt  Date      (auto)
+  updatedAt  Date      (auto)
 
-### User
-```
-_id          ObjectId
-email        String  required, unique, lowercase, trim
-password     String  required  (bcrypt hash, never plaintext)
-name         String  required, trim
-role         String  enum: ['user', 'admin']  default: 'user'
-```
+ENDEAVOR  (also serves as Deployment when status=deployed)
+  _id           ObjectId  (auto)
+  userId        ObjectId  ref→User  required  ← owner
+  title         String    required
+  description   String    default ''
+  status        String    enum[active,completed,paused,deployed]
+  framework     String
+  repoUrl       String
+  liveUrl       String    (deployment fields)
+  demoUrl       String
+  version       String
+  platform      String
+  launchDate    Date
+  collaborators [String]
+  tags          [String]
+  imageUrl      String
+  origin        String    enum[trace,lead,endeavor]  default null
+  deletedAt     Date      default null  ← soft delete / 30d TTL
+  createdAt     Date      (auto)
+  updatedAt     Date      (auto)
 
-### Endeavor
-```
-_id          ObjectId
-userId       ObjectId  ref: User  required
-title        String    required, trim
-description  String    default: ''
-status       String    enum: ['active', 'completed', 'paused', 'deployed']
-framework    String
-repoUrl      String
-imageUrl     String    (relative path to uploaded file)
-tags         [String]
-lanes        [String]
-date         Date
-```
+LEAD
+  _id          ObjectId  (auto)
+  userId       ObjectId  ref→User  required  ← owner
+  title        String    required
+  description  String    default ''
+  category     String
+  status       String    enum[active,parked,promoted]
+  priority     String    enum[none,low,medium,high]
+  origin       String    enum[trace,lead,endeavor]  default null
+  deletedAt    Date      default null  ← soft delete / 30d TTL
+  createdAt    Date      (auto)
+  updatedAt    Date      (auto)
 
-### Lead
-```
-_id                  ObjectId
-userId               ObjectId  ref: User     required
-title                String    required, trim
-description          String    default: ''
-category             String
-status               String    enum: ['active', 'parked', 'promoted']
-priority             String    enum: ['none', 'low', 'medium', 'high']
-promotedToProjectId  ObjectId  ref: Endeavor  default: null
-```
+TRACE
+  _id        ObjectId  (auto)
+  userId     ObjectId  ref→User  required  ← owner
+  title      String    required
+  category   String
+  ideaId     ObjectId  ref→Lead      default null
+  projectId  ObjectId  ref→Endeavor  default null
+  origin     String    enum[trace,lead,endeavor]  default null
+  deletedAt  Date      default null  ← soft delete / 30d TTL
+  createdAt  Date      (auto)
+  updatedAt  Date      (auto)
 
-### Trace
-```
-_id        ObjectId
-userId     ObjectId  ref: User     required
-title      String    required, trim
-category   String
-projectId  ObjectId  ref: Endeavor  default: null
-ideaId     ObjectId  ref: Lead      default: null
-```
-A Trace is standalone when both `projectId` and `ideaId` are null. It becomes a nested note by setting one of those references.
+MARK
+  _id        ObjectId  (auto)
+  userId     ObjectId  ref→User  required  ← owner
+  title      String    required
+  notes      String    default ''
+  dueBy      Date      default null
+  done       Boolean   default false
+  category   String
+  projectId  ObjectId  ref→Endeavor  default null
+  ideaId     ObjectId  ref→Lead      default null
+  deletedAt  Date      default null  ← soft delete / 30d TTL
+  createdAt  Date      (auto)
+  updatedAt  Date      (auto)
 
-### Mark
+Relationships
+  User → Endeavor, Lead, Trace, Mark  (one-to-many via userId)
+  Lead → Trace   (one-to-many via Trace.ideaId)
+  Lead → Mark    (one-to-many via Mark.ideaId)
+  Endeavor → Trace  (one-to-many via Trace.projectId)
+  Endeavor → Mark   (one-to-many via Mark.projectId)
 ```
-_id        ObjectId
-userId     ObjectId  ref: User     required
-title      String    required, trim
-notes      String    default: ''
-done       Boolean   default: false
-dueBy      Date      default: null
-category   String
-projectId  ObjectId  ref: Endeavor  default: null
-ideaId     ObjectId  ref: Lead      default: null
-thoughtId  ObjectId  ref: Trace     default: null
-```
-Marks support the same polymorphic parent pattern as Traces, and can also be filtered by query string on `GET /marks?projectId=...`.
 
 ---
 
-## 3. API Reference
+## 3. API Design
 
-All routes except `/health`, `/auth/signup`, and `/auth/login` require `Authorization: Bearer <token>`.
+```
+── AUTH (public) ──────────────────────────────────────
+POST /auth/signup
+  body: name, email, password
+  201: { token, user }   400: { error }
 
-Validation errors return `400` with `{ "error": "field is required | field must be..." }`.
-Auth failures return `401`. Ownership mismatches return `404` (resource not found for this user). Admin-only refusals return `403`.
+POST /auth/login
+  body: email, password
+  200: { token, user }   401: { error }
 
-### Health
-| Method | Path      | Auth | Response                  |
-|--------|-----------|------|---------------------------|
-| GET    | /health   | none | `{ status: 'ok' }`        |
+GET /health
+  200: { status: 'ok' }
 
-### Auth
-| Method | Path          | Auth | Body                                | Response                         |
-|--------|---------------|------|-------------------------------------|----------------------------------|
-| POST   | /auth/signup  | none | `{ name, email, password }`         | `201 { token, user }`            |
-| POST   | /auth/login   | none | `{ email, password }`               | `200 { token, user }`            |
+── ENDEAVORS (auth required, scoped to userId) ────────
+GET    /endeavors
+  200: [Endeavor]
 
-Signup rules: name 2–50 chars, email valid format, password 8–128 chars.
+POST   /endeavors
+  body: title*, description*, framework*, repoUrl*,
+        status, liveUrl, demoUrl, version, platform,
+        launchDate, collaborators, tags
+  201: Endeavor
 
-### Endeavors
-| Method | Path                    | Auth    | Body / Notes                                                          | Response           |
-|--------|-------------------------|---------|-----------------------------------------------------------------------|--------------------|
-| GET    | /endeavors              | user    | —                                                                     | `200 [Endeavor]`   |
-| POST   | /endeavors              | user    | `{ title*, description, framework, repoUrl, tags, status }`           | `201 Endeavor`     |
-| GET    | /endeavors/:id          | user    | —                                                                     | `200 Endeavor`     |
-| PUT    | /endeavors/:id          | user    | any subset of POST body                                               | `200 Endeavor`     |
-| DELETE | /endeavors/:id          | user    | —                                                                     | `200 { message }`  |
-| POST   | /endeavors/:id/image    | user    | `multipart/form-data` field `image` (JPEG/PNG/WebP/GIF, max 5 MB)    | `200 Endeavor`     |
+GET    /endeavors/:id
+  200: Endeavor   404: { error }
 
-Admin users bypass the `userId` filter on GET and GET/:id (they see all endeavors).
+PUT    /endeavors/:id
+  body: any subset of POST fields
+  200: Endeavor   404: { error }
 
-### Leads
-| Method | Path         | Auth | Body                                                  | Response        |
-|--------|--------------|------|-------------------------------------------------------|-----------------|
-| GET    | /leads       | user | —                                                     | `200 [Lead]`    |
-| POST   | /leads       | user | `{ title*, description, category, status, priority }` | `201 Lead`      |
-| GET    | /leads/:id   | user | —                                                     | `200 Lead`      |
-| PUT    | /leads/:id   | user | any subset of POST body                               | `200 Lead`      |
-| DELETE | /leads/:id   | user | —                                                     | `200 { message }` |
+PATCH  /endeavors/:id/stash
+  200: { message }   404: { error }
 
-### Traces
-| Method | Path           | Auth | Body                                          | Response          |
-|--------|----------------|------|-----------------------------------------------|-------------------|
-| GET    | /traces        | user | query: `?projectId=` or `?ideaId=`            | `200 [Trace]`     |
-| POST   | /traces        | user | `{ title*, category, projectId, ideaId }`     | `201 Trace`       |
-| GET    | /traces/:id    | user | —                                             | `200 Trace`       |
-| PUT    | /traces/:id    | user | any subset of POST body                       | `200 Trace`       |
-| DELETE | /traces/:id    | user | —                                             | `200 { message }` |
+DELETE /endeavors/:id
+  200: { message }   404: { error }
 
-### Marks
-| Method | Path        | Auth | Body                                                      | Response        |
-|--------|-------------|------|-----------------------------------------------------------|-----------------|
-| GET    | /marks      | user | query: `?projectId=` `?ideaId=` `?thoughtId=`             | `200 [Mark]`    |
-| POST   | /marks      | user | `{ title*, notes, done, dueBy, projectId, ideaId }`       | `201 Mark`      |
-| GET    | /marks/:id  | user | —                                                         | `200 Mark`      |
-| PUT    | /marks/:id  | user | any subset of POST body                                   | `200 Mark`      |
-| DELETE | /marks/:id  | user | —                                                         | `200 { message }` |
+POST   /endeavors/:id/image
+  body: multipart, field 'image' (max 5MB, JPEG/PNG/WebP/GIF)
+  200: Endeavor   400: { error }
 
-### Admin
-| Method | Path          | Auth  | Response                                |
-|--------|---------------|-------|-----------------------------------------|
-| GET    | /admin/users  | admin | `200 [User]` (password field excluded)  |
+── LEADS (auth required, scoped to userId) ────────────
+GET    /leads              200: [Lead]
+POST   /leads              body: title*, description,
+                                 category, status, priority
+                           201: Lead
+GET    /leads/:id          200: Lead    404: { error }
+PUT    /leads/:id          body: any subset   200: Lead
+PATCH  /leads/:id/stash    200: { message }
+DELETE /leads/:id          200: { message }
+
+── TRACES (auth required, scoped to userId) ───────────
+GET    /traces             200: [Trace]
+POST   /traces             body: title*, category,
+                                 ideaId, projectId
+                           201: Trace
+GET    /traces/:id         200: Trace   404: { error }
+PUT    /traces/:id         body: any subset   200: Trace
+PATCH  /traces/:id/stash   200: { message }
+DELETE /traces/:id         200: { message }
+
+── MARKS (auth required, always scoped to userId) ─────
+GET    /marks              query: ?projectId= or ?ideaId=
+                           200: [Mark]
+POST   /marks              body: title*, notes, dueBy,
+                                 done, projectId, ideaId
+                           201: Mark
+GET    /marks/:id          200: Mark   404: { error }
+PUT    /marks/:id          body: any subset   200: Mark
+PATCH  /marks/:id/stash    200: { message }
+DELETE /marks/:id          200: { message }
+
+── PROMOTE (auth required, scoped to userId) ──────────
+POST /promote
+  body: fromCollection, fromId, toCollection,
+        ...fields for new document
+  201: new document
+  Finds source → copies origin → creates in target
+  → hard-deletes source
+
+── BIN / STASH (auth required, scoped to userId) ──────
+GET    /bin
+  200: all 4 collections where deletedAt != null,
+       each item tagged with _type, sorted by deletedAt
+
+POST   /bin/:collection/:id/restore
+  sets deletedAt: null   200: item
+
+POST   /bin/:collection/:id/resurface
+  resets deletedAt: new Date()  (restarts 30d timer)
+  200: item
+
+DELETE /bin/:collection/:id
+  permanent delete   200: { message }
+
+── ADMIN (auth + admin role required) ─────────────────
+GET /admin/users
+  200: [User] (password excluded)
+```
 
 ---
 
-## 4. Key Technical Decisions
+## 4. Component Tree
 
-### Express as a standalone server, not Next.js API Routes
-Next.js API routes are convenient but they couple the backend to the frontend deployment. A standalone Express server deploys independently on Render, exposes a clean REST interface, and can serve any client — including the React Native mobile companion and the automated test suite — without the frontend involved. It also gives full control over the middleware chain ordering.
+```
+RootLayout
+  AuthProvider  [state: user, loading]
+    API: signup, login on submit; reads localStorage on mount
+    Nav  — reads useAuth()
+    <page>
 
-### MongoDB + Mongoose
-Developer project data is schema-light and variable: some projects have images, some have tags, some have neither. A document database fits that shape without nullable columns or join tables. MongoDB Atlas provides a free M0 cluster adequate for a portfolio project. Mongoose adds a schema enforcement layer on top of the flexible storage, so validation has two defense-in-depth points: the custom `validate` middleware (returns clean 400s) and Mongoose's own validators (caught by `clientError` and also returned as 400s).
+/  →  DeploymentList
+  [state: endeavors[], error]
+  API: getEndeavors() on mount, filters status=deployed
+  DeploymentCard (per endeavor)
+    no state, no API
+    Chevron — pure render, type from endeavor.origin
 
-### JWT over sessions
-Stateless tokens mean the server holds no session state between requests. The frontend stores the token in localStorage and attaches it as `Authorization: Bearer <token>` on every request. `requireAuth` calls `jwt.verify()` on every protected route and then confirms the user still exists in the database — so a deleted account immediately loses access even if the token hasn't expired. The 7-day expiry balances security with UX (users don't get logged out constantly).
+/leads  →  VentureList
+  [state: tab, leads[], traces[], endeavors[],
+          marks[], searchQuery, activeId, error]
+  API: getLeads + getTraces + getEndeavors + getMarks
+       on mount (Promise.all)
+  SearchResults (when searchQuery set)
+    no state — pure computation on props
+  TracesTab
+    AddTraceForm  [state: title, open]
+      API: createTrace on submit
+    TracePanel (standalone traces)
+      [state: editing, confirming, title, highlighted]
+      API: updateTrace, deleteTrace, stashTrace
+      routes to /leads/new on promote click
+      ConfirmModal — no state, no API
+  LeadsTab
+    AddLeadForm (inline quick-add)  [state: title, open]
+      API: createLead on submit
+    LeadPanel
+      [state: open, editing, confirming, title,
+              priority, addingTrace, newTrace]
+      API: updateLead, deleteLead, stashLead, createTrace
+      routes to /endeavors/new on promote click
+      TracePanel (nested)
+      MarkList  [state: marks[], editId, confirmId]
+        API: getMarks on mount, createMark,
+             updateMark, deleteMark, stashMark
+        ConfirmModal
+      ConfirmModal
+  EndeavorTab
+    routes to /endeavors/new on button click
+    EndeavorPanel
+      [state: open, editingTitle, editingDetails,
+              confirming, addingTrace, details{}]
+      API: updateEndeavor, deleteEndeavor,
+           stashEndeavor, createTrace
+      routes to /deployments/new on promote click
+      TracePanel (nested)
+      MarkList
+      ConfirmModal
 
-### bcrypt cost factor 12
-The pre-save hook hashes passwords with bcrypt at cost 12, the current industry-recommended default. Cost 12 takes roughly 250–400ms to hash, making brute-force attacks extremely expensive while remaining fast enough for interactive login. Passwords are never stored or logged in plaintext at any point.
+/leads/new  →  AddLeadForm (Suspense wrapper)
+  [state: form{}, invalid{}, error, submitting]
+  reads URL params for pre-fill (promotion flow)
+  API: promote() or createLead() on submit
 
-### Ownership enforced at the database filter level
-Every write query includes `{ userId: req.user._id }` in the filter — not in a post-fetch ownership check. `Project.findOneAndDelete({ _id: id, userId: req.user._id })` returns null if the project doesn't exist *or* if it belongs to someone else. Both cases return 404. This prevents a class of bugs where a developer forgets to add an ownership check after fetching a document, and it ensures authorization is uniform across all operations.
+/endeavors/new  →  AddEndeavorForm (Suspense wrapper)
+  [state: form{}, invalid{}, error, submitting]
+  reads URL params for pre-fill
+  API: promote() or createEndeavor() on submit
 
-### Custom `validate` middleware
-A single middleware function accepts a rules object and applies `required`, `minLength`, `maxLength`, `isEmail`, `isUrl`, and `enum` checks. The `requireAll: false` option lets PUT routes skip `required` checks so partial updates work without client sending unchanged fields. All validation errors are collected and joined into a single response string, so the frontend receives all problems at once rather than one at a time.
+/deployments/new  →  AddDeploymentForm (Suspense wrapper)
+  [state: form{}, invalid{}, error, submitting]
+  reads URL params for pre-fill
+  API: promote() or createEndeavor() on submit
 
-### Custom `httpError` — no stack traces to clients
-All 500 handlers return `{ error: 'Something went wrong' }`. The `clientError` function translates known MongoDB errors (duplicate key → "email is already in use", ValidationError → field messages) into clean 400 responses without leaking database internals, collection names, or stack traces. This is the difference between `MongoServerError: E11000 duplicate key error collection: velawrightdb.users index: email_1` reaching the browser versus `email is already in use`.
+/deployments/[id]  →  EditDeploymentForm
+  [state: form{}, loading, error, confirming]
+  API: getEndeavor on mount, updateEndeavor on save,
+       deleteEndeavor, stashEndeavor
+  ConfirmModal
 
-### `app.js` / `server.js` split for testability
-The Express app is fully configured in `app.js` (middleware, routes, no DB connection, no `listen`). `server.js` imports it and adds `mongoose.connect(...).then(app.listen)`. The test suite imports `app.js` directly and connects to an isolated `MongoMemoryServer` instance — no Atlas connection required, no test data polluting production. This separation is what makes `npm test` repeatable and fast.
-
-### CORS locked to `CLIENT_URL` env var
-CORS origin is `process.env.CLIENT_URL`, set to the exact Vercel deployment URL in production. There is no wildcard (`*`) and no array of allowed origins. Any request from a different origin is refused at the CORS preflight stage, before it reaches any route handler.
+/settings  →  Settings
+  [state: section]
+  StashSection
+    [state: bin[], binLoading, confirmItem, error]
+    API: getBin on mount, restoreItem,
+         resurfaceItem, permanentDelete
+    ConfirmModal (no onStash — no re-stashing from Stash)
+```

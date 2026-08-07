@@ -9,7 +9,7 @@ function isValidUrl(val) {
   return /^https?:\/\/.+/.test(val.trim())
 }
 
-function AddEndeavorFormInner() {
+function AddDeploymentFormInner() {
   const { user } = useAuth()
   const router = useRouter()
   const params = useSearchParams()
@@ -19,50 +19,55 @@ function AddEndeavorFormInner() {
   const isPromotion = !!(promoteFrom && sourceId)
 
   const [form, setForm] = useState({
-    title:       params.get('title') || '',
-    description: params.get('description') || '',
-    framework:   '',
-    repoUrl:     '',
-    tags:        '',
-    status:      'active',
+    title:         params.get('title') || '',
+    description:   params.get('description') || '',
+    framework:     params.get('framework') || '',
+    repoUrl:       params.get('repoUrl') || '',
+    liveUrl:       '',
+    version:       '',
+    platform:      '',
+    launchDate:    '',
+    demoUrl:       '',
+    collaborators: params.get('collaborators') || '',
+    tags:          params.get('tags') || '',
+    status:        'deployed',
   })
   const [invalid, setInvalid] = useState({})
   const [error, setError] = useState('')
   const [submitting, setSubmitting] = useState(false)
 
+  const REQUIRED_URLS = ['repoUrl', 'liveUrl']
+  const REQUIRED_TEXT = ['title', 'description', 'framework', 'version', 'platform', 'launchDate']
+
   function update(field, value) {
     setForm(f => ({ ...f, [field]: value }))
     if (!invalid[field]) return
-    const met = field === 'repoUrl' ? isValidUrl(value) : value.trim().length > 0
+    const met = REQUIRED_URLS.includes(field) ? isValidUrl(value) : value.trim().length > 0
     if (met) setInvalid(prev => { const next = { ...prev }; delete next[field]; return next })
   }
 
   async function handleSubmit(e) {
     e.preventDefault()
     const errors = {}
-    if (!form.title.trim())        errors.title = true
-    if (!form.description.trim())  errors.description = true
-    if (!form.framework.trim())    errors.framework = true
-    if (!isValidUrl(form.repoUrl)) errors.repoUrl = true
+    REQUIRED_TEXT.forEach(f => { if (!form[f].trim()) errors[f] = true })
+    REQUIRED_URLS.forEach(f => { if (!isValidUrl(form[f])) errors[f] = true })
     if (Object.keys(errors).length > 0) { setInvalid(errors); return }
 
     setError('')
     setSubmitting(true)
     try {
       const payload = {
-        title:       form.title,
-        description: form.description,
-        framework:   form.framework,
-        repoUrl:     form.repoUrl,
-        tags:        form.tags.split(',').map(t => t.trim()).filter(Boolean),
-        status:      form.status,
+        ...form,
+        tags:          form.tags.split(',').map(t => t.trim()).filter(Boolean),
+        collaborators: form.collaborators.split(',').map(c => c.trim()).filter(Boolean),
+        launchDate:    new Date(form.launchDate).toISOString(),
       }
       if (isPromotion) {
         await api.promote({ fromCollection: promoteFrom, fromId: sourceId, toCollection: 'endeavors', ...payload })
       } else {
         await api.createEndeavor(payload)
       }
-      router.push('/leads')
+      router.push('/')
     } catch (err) {
       setError(err.message)
     } finally {
@@ -81,13 +86,13 @@ function AddEndeavorFormInner() {
   return (
     <div style={{ maxWidth: 600, margin: '0 auto' }}>
       <button
-        onClick={() => router.push('/leads')}
+        onClick={() => router.push('/')}
         style={{ background: 'none', border: 'none', color: '#e07820', marginBottom: '1.5rem', fontSize: '0.875rem', cursor: 'pointer' }}
       >
         ← Back
       </button>
       <h1 style={{ fontSize: '1.5rem', fontWeight: 700, marginBottom: '1.5rem' }}>
-        {isPromotion ? 'Promote to Endeavor' : 'New Endeavor'}
+        {isPromotion ? 'Promote to Deployment' : 'New Deployment'}
       </h1>
 
       {error && (
@@ -97,28 +102,32 @@ function AddEndeavorFormInner() {
       )}
 
       <form onSubmit={handleSubmit} noValidate style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-        <input value={form.title} onChange={e => update('title', e.target.value)} placeholder="Title *" aria-label="Endeavor title" style={field('title')} />
-        <textarea value={form.description} onChange={e => update('description', e.target.value)} placeholder="Description *" aria-label="Endeavor description" style={{ ...field('description'), minHeight: 100, resize: 'vertical' }} />
+        <input value={form.title} onChange={e => update('title', e.target.value)} placeholder="Title *" aria-label="Title" style={field('title')} />
+        <textarea value={form.description} onChange={e => update('description', e.target.value)} placeholder="Description *" aria-label="Description" style={{ ...field('description'), minHeight: 100, resize: 'vertical' }} />
         <input value={form.framework} onChange={e => update('framework', e.target.value)} placeholder="Framework *" aria-label="Framework" style={field('framework')} />
         <input value={form.repoUrl} onChange={e => update('repoUrl', e.target.value)} placeholder="Repo URL *" aria-label="Repository URL" style={field('repoUrl')} />
+        <input value={form.liveUrl} onChange={e => update('liveUrl', e.target.value)} placeholder="Live URL *" aria-label="Live URL" style={field('liveUrl')} />
+        <input value={form.version} onChange={e => update('version', e.target.value)} placeholder="Version * (e.g. v1.0.0)" aria-label="Version" style={field('version')} />
+        <input value={form.platform} onChange={e => update('platform', e.target.value)} placeholder="Platform * (e.g. Vercel, Render, AWS)" aria-label="Platform" style={field('platform')} />
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
+          <label style={{ fontSize: '0.8rem', color: '#888' }}>Launch Date *</label>
+          <input type="date" value={form.launchDate} onChange={e => update('launchDate', e.target.value)} aria-label="Launch date" style={{ ...field('launchDate'), colorScheme: 'dark' }} />
+        </div>
+        <input value={form.demoUrl} onChange={e => setForm(f => ({ ...f, demoUrl: e.target.value }))} placeholder="Demo URL" aria-label="Demo URL" style={inputStyle} />
+        <input value={form.collaborators} onChange={e => setForm(f => ({ ...f, collaborators: e.target.value }))} placeholder="Collaborators (comma-separated)" aria-label="Collaborators" style={inputStyle} />
         <input value={form.tags} onChange={e => setForm(f => ({ ...f, tags: e.target.value }))} placeholder="Tags (comma-separated)" aria-label="Tags" style={inputStyle} />
-        <select value={form.status} onChange={e => setForm(f => ({ ...f, status: e.target.value }))} aria-label="Endeavor status" style={inputStyle}>
-          <option value="active">Active</option>
-          <option value="completed">Completed</option>
-          <option value="paused">Paused</option>
-        </select>
         <button type="submit" disabled={submitting} style={btnStyle}>
-          {submitting ? 'Saving…' : isPromotion ? 'Promote to Endeavor' : 'Create Endeavor'}
+          {submitting ? 'Saving…' : isPromotion ? 'Promote to Deployment' : 'Create Deployment'}
         </button>
       </form>
     </div>
   )
 }
 
-export default function AddEndeavorForm() {
+export default function AddDeploymentForm() {
   return (
     <Suspense>
-      <AddEndeavorFormInner />
+      <AddDeploymentFormInner />
     </Suspense>
   )
 }
