@@ -1,17 +1,17 @@
 {
   "expo": {
-    "name": "projectHub",
-    "slug": "projecthub",
+    "name": "velaWright",
+    "slug": "velawright",
     "version": "1.0.0",
     "orientation": "portrait",
-    "scheme": "projecthub",
+    "scheme": "velawright",
     "userInterfaceStyle": "dark",
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.projecthub.app"
+      "bundleIdentifier": "com.velawright.app"
     },
     "android": {
-      "package": "com.projecthub.app"
+      "package": "com.velawright.app"
     },
     "web": {
       "bundler": "metro",

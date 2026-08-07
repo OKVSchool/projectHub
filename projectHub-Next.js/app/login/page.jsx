@@ -26,7 +26,7 @@ export default function Login() {
   return (
     <div style={{ maxWidth: 400, margin: '4rem auto' }}>
       <h1 style={{ fontSize: '1.5rem', fontWeight: 700, marginBottom: '1.5rem', textAlign: 'center' }}>
-        Log in to projectHub
+        Log in to velaWright
       </h1>
 
       {error && (

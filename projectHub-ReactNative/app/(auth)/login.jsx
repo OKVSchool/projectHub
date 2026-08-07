@@ -22,7 +22,7 @@ export default function Login() {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>projectHub</Text>
+      <Text style={styles.title}>velaWright</Text>
       <Text style={styles.subtitle}>Log in to your account</Text>
 
       <TextInput
