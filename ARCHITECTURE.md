@@ -22,6 +22,7 @@ EXPRESS SERVER (Render)
   Per-route: validate() checks body fields
   Route groups: /endeavors /leads /traces /marks
                 /promote /bin /admin
+
         ↓
 
 MONGODB ATLAS (M0)
@@ -31,13 +32,6 @@ MONGODB ATLAS (M0)
     null  = active
     Date  = stashed (30-day TTL index auto-purges)
 ```
-
-Deployment environment variables:
-
-| Service | Key vars |
-|---------|----------|
-| Render  | MONGODB_URI, JWT_SECRET, CLIENT_URL |
-| Vercel  | NEXT_PUBLIC_API_URL |
 
 ---
 
@@ -231,7 +225,7 @@ GET /admin/users
 ```
 RootLayout
   AuthProvider  [state: user, loading]
-    API: signup, login on submit; reads localStorage on mount
+    API: signup, login on form submit; reads localStorage on mount
     Nav  — reads useAuth()
     <page>
 
@@ -310,5 +304,5 @@ RootLayout
     [state: bin[], binLoading, confirmItem, error]
     API: getBin on mount, restoreItem,
          resurfaceItem, permanentDelete
-    ConfirmModal (no onStash — no re-stashing from Stash)
+    ConfirmModal (no onStash)
 ```
